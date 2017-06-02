@@ -1,10 +1,13 @@
-var app = require('express')();
+var express = require('express');
+var app = express();
 var http = require('http').createServer(app);
 var io = require('socket.io')(http);
 var config = require('./config');
 
+
+app.use(express.static(__dirname + '/build'))
 app.get("/", function(req, res) {
-    res.sendFile(__dirname + '/index.html');
+    res.sendFile(__dirname + '/build/index.html');
 });
 
 app.get("/admin", function(req, res) {
