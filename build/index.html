@@ -47,19 +47,5 @@
       </div>
 
     </div><!-- /.container -->
-    <script src="/socket.io/socket.io.js"></script>
-    <script>
-    $(function() {
-        var socket = io();
-        $("form").submit(function() {
-            socket.emit("chat message", $("#m").val());
-            $("#m").val('');
-            return false;
-        });
-        socket.on("new poll", function(msg) {
-            console.log(msg);
-        });
-    });
-    </script>
   <script type="text/javascript" src="app.bundle.js"></script></body>
 </html>

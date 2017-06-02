@@ -23,6 +23,9 @@ io.on('connection', function(socket) {
     socket.on("disconnect", function() {
         console.log("user disconnected");
     })
+    socket.on("loaded", function() {
+        console.log("loaded");
+    })
 });
 
 http.listen(3000, function() {
