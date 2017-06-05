@@ -10,11 +10,14 @@ module.exports = {
     },
     plugins: [
         new HtmlWebpackPlugin({
-            template: 'app/student.html',
+            template: 'app/template.html',
             inject: 'body',
             filename: 'index.html'
         })
     ],
+    resolve: {
+        extensions: ['.js', '.jsx']
+    },
     module: {
         loaders: [
             {

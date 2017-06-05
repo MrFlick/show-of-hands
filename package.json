@@ -4,12 +4,13 @@
   "description": "App to get interactive feedback during a lecture",
   "scripts": {
     "start": "node server",
-    "build": "webpack"
+    "build": "webpack --display-error-details"
   },
   "dependencies": {
     "express": "^4.15.2",
     "react": "^15.5.4",
     "react-dom": "^15.5.4",
+    "react-router-dom": "^4.1.1",
     "socket.io": "^2.0.1"
   },
   "devDependencies": {
