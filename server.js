@@ -5,6 +5,8 @@ var io = require('socket.io')(http);
 var config = require('./config');
 
 
+var data = require("./data-layer").getDataStore(config.db_path);
+
 app.use(express.static(__dirname + '/build'))
 app.get("*", function(req, res) {
     res.sendFile(__dirname + '/build/index.html');
