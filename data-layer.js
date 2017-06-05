@@ -63,8 +63,8 @@ var DataStore = function(dbpath) {
 	};
 
     this.addPoll = function(prompt) {
-        return insert(db, "INSERT INTO polls (prompt_id, title) " +
-            "values (?, ?)", prompt.prompt_id, prompt.title).then((newid) => {
+        return insert(db, "INSERT INTO polls (prompt_id, title, type, options) " +
+            "values (?, ?, ?, ?)", prompt.prompt_id, prompt.title, prompt.type, prompt.options).then((newid) => {
                 return this.getPoll(newid)
             })
     };
