@@ -5,20 +5,17 @@ const socket = io();
 export default class Presenter extends React.Component {
     constructor(props) {
         super(props)
-        this.state = {prompts: [{title: "A"}, {title: "Z"}], shares: []};
-        socket.on("new prompt", (prompt) => this.newPrompt(prompt))
-        socket.on("close prompt", (prompt) => this.closePrompt(prompt))
-        socket.on("new share", (share) => this.newShare(share))
+        this.state = {prompts: [], shares: []};
+        socket.on("prompt list", (prompts) => this.refreshPrompts(prompts))
     }
-    newPrompt(prompt) {
-        this.state.shares.append(prompt);
+    refreshPrompts(prompts) {
+        this.setState({prompts: prompts});
+        console.log(prompts);
     }
-    closePrompt(prompt) {
-
+    componentDidMount() {
+        socket.emit("request prompt list")
     }
     render() {
-        console.log("emit");
-        socket.emit("loaded");
         return (
             <PromptList prompts={this.state.prompts}></PromptList>
         )
@@ -26,23 +23,19 @@ export default class Presenter extends React.Component {
 }
 
 function PromptList(props) {
-    function sendPrompt(e) {
-        e.preventDefault();
-        socket.emit("new prompt", {
-                type: "poll",
-                id: 23,
-                title: "What's your fav",
-                choices: [
-                    {value: "A"},
-                    {value: "B"},
-                    {value: "C"}
-                ]
-            }
-        );
-    }
-    return <form onSubmit={sendPrompt}><button>Send Poll</button></form>;
+    return <div>{props.prompts.map((row) => {
+          return <Prompt key={row.prompt_id} prompt={row}></Prompt>
+        })}</div>
 }
 
 function Prompt(props) {
-   return <li>{props.prompt.title}</li>; 
+    var prompt = props.prompt;
+    console.log(prompt)
+    function sendPrompt(e) {
+        e.preventDefault();
+        socket.emit("add poll", prompt);
+    }
+    return <div><form onSubmit={sendPrompt}>
+        <button>Send Poll</button></form>
+        {prompt.title}</div>;
 }

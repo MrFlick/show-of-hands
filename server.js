@@ -14,16 +14,24 @@ app.get("*", function(req, res) {
 
 io.on('connection', function(socket) {
     console.log("a user connected");
-    socket.on("new prompt", function(msg) {
-        io.emit("new prompt", msg);
-        console.log("new prompt:" + msg);
-    })
+    socket.on("add poll", function(msg) {
+        data.addPoll(msg).then((poll) => {
+            io.emit("new poll", poll);
+        })
+    });
     socket.on("disconnect", function() {
         console.log("user disconnected");
-    })
-    socket.on("loaded", function() {
-        console.log("loaded");
-    })
+    });
+    socket.on("request prompt list", function() {
+        data.getPrompts().then((prompts) => {;
+            socket.emit("prompt list", prompts);
+        });
+    });
+    socket.on("request poll list", function() {
+        data.getPolls().then((polls) => {;
+            socket.emit("poll list", polls);
+        });
+    });
 });
 
 http.listen(3000, function() {

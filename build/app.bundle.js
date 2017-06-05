@@ -14379,32 +14379,27 @@ var Presenter = function (_React$Component) {
 
         var _this = _possibleConstructorReturn(this, (Presenter.__proto__ || Object.getPrototypeOf(Presenter)).call(this, props));
 
-        _this.state = { prompts: [{ title: "A" }, { title: "Z" }], shares: [] };
-        socket.on("new prompt", function (prompt) {
-            return _this.newPrompt(prompt);
-        });
-        socket.on("close prompt", function (prompt) {
-            return _this.closePrompt(prompt);
-        });
-        socket.on("new share", function (share) {
-            return _this.newShare(share);
+        _this.state = { prompts: [], shares: [] };
+        socket.on("prompt list", function (prompts) {
+            return _this.refreshPrompts(prompts);
         });
         return _this;
     }
 
     _createClass(Presenter, [{
-        key: 'newPrompt',
-        value: function newPrompt(prompt) {
-            this.state.shares.append(prompt);
+        key: 'refreshPrompts',
+        value: function refreshPrompts(prompts) {
+            this.setState({ prompts: prompts });
+            console.log(prompts);
         }
     }, {
-        key: 'closePrompt',
-        value: function closePrompt(prompt) {}
+        key: 'componentDidMount',
+        value: function componentDidMount() {
+            socket.emit("request prompt list");
+        }
     }, {
         key: 'render',
         value: function render() {
-            console.log("emit");
-            socket.emit("loaded");
             return _react2.default.createElement(PromptList, { prompts: this.state.prompts });
         }
     }]);
@@ -14416,31 +14411,35 @@ exports.default = Presenter;
 
 
 function PromptList(props) {
-    function sendPrompt(e) {
-        e.preventDefault();
-        socket.emit("new prompt", {
-            type: "poll",
-            id: 23,
-            title: "What's your fav",
-            choices: [{ value: "A" }, { value: "B" }, { value: "C" }]
-        });
-    }
     return _react2.default.createElement(
-        'form',
-        { onSubmit: sendPrompt },
-        _react2.default.createElement(
-            'button',
-            null,
-            'Send Poll'
-        )
+        'div',
+        null,
+        props.prompts.map(function (row) {
+            return _react2.default.createElement(Prompt, { key: row.prompt_id, prompt: row });
+        })
     );
 }
 
 function Prompt(props) {
+    var prompt = props.prompt;
+    console.log(prompt);
+    function sendPrompt(e) {
+        e.preventDefault();
+        socket.emit("add poll", prompt);
+    }
     return _react2.default.createElement(
-        'li',
+        'div',
         null,
-        props.prompt.title
+        _react2.default.createElement(
+            'form',
+            { onSubmit: sendPrompt },
+            _react2.default.createElement(
+                'button',
+                null,
+                'Send Poll'
+            )
+        ),
+        prompt.title
     );
 }
 
@@ -14482,12 +14481,15 @@ var Student = function (_React$Component) {
 
         var _this = _possibleConstructorReturn(this, (Student.__proto__ || Object.getPrototypeOf(Student)).call(this, props));
 
-        _this.state = { prompts: [], shares: [] };
-        socket.on("new prompt", function (prompt) {
-            return _this.newPrompt(prompt);
+        _this.state = { polls: [], shares: [] };
+        socket.on("new poll", function (poll) {
+            return _this.newPoll(poll);
         });
-        socket.on("close prompt", function (prompt) {
-            return _this.closePrompt(prompt);
+        socket.on("close poll", function (poll) {
+            return _this.closePoll(poll);
+        });
+        socket.on("poll list", function (polls) {
+            return _this.refreshPolls(polls);
         });
         socket.on("new share", function (share) {
             return _this.newShare(share);
@@ -14496,24 +14498,32 @@ var Student = function (_React$Component) {
     }
 
     _createClass(Student, [{
-        key: 'newPrompt',
-        value: function newPrompt(prompt) {
-            console.log("new prompt", prompt);
+        key: 'refreshPolls',
+        value: function refreshPolls(polls) {
+            this.setState({ polls: polls });
+        }
+    }, {
+        key: 'newPoll',
+        value: function newPoll(poll) {
+            console.log("new poll", prompt);
             this.setState(function (previousState) {
                 return {
-                    prompts: [].concat(_toConsumableArray(previousState.prompts), [prompt])
+                    polls: [].concat(_toConsumableArray(previousState.polls), [poll])
                 };
             });
         }
     }, {
-        key: 'closePrompt',
-        value: function closePrompt(prompt) {}
+        key: 'closePoll',
+        value: function closePoll(poll) {}
+    }, {
+        key: 'componentDidMount',
+        value: function componentDidMount() {
+            socket.emit("request poll list");
+        }
     }, {
         key: 'render',
         value: function render() {
-            console.log("emit");
-            socket.emit("loaded");
-            return _react2.default.createElement(PromptList, { prompts: this.state.prompts });
+            return _react2.default.createElement(PollList, { polls: this.state.polls });
         }
     }]);
 
@@ -14523,21 +14533,21 @@ var Student = function (_React$Component) {
 exports.default = Student;
 
 
-function PromptList(props) {
+function PollList(props) {
     return _react2.default.createElement(
         'ul',
         null,
-        props.prompts.map(function (row, i) {
-            return _react2.default.createElement(Prompt, { key: row.id, prompt: row });
+        props.polls.map(function (row, i) {
+            return _react2.default.createElement(Poll, { key: row.poll_id, poll: row });
         })
     );
 }
 
-function Prompt(props) {
+function Poll(props) {
     return _react2.default.createElement(
         'li',
         null,
-        props.prompt.title
+        props.poll.title
     );
 }
 
