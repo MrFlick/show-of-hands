@@ -12,9 +12,9 @@ app.get("*", function(req, res) {
 
 io.on('connection', function(socket) {
     console.log("a user connected");
-    socket.on("new poll", function(msg) {
-        io.emit("new poll", msg);
-        console.log("new poll:" + msg);
+    socket.on("new prompt", function(msg) {
+        io.emit("new prompt", msg);
+        console.log("new prompt:" + msg);
     })
     socket.on("disconnect", function() {
         console.log("user disconnected");

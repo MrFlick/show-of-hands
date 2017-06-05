@@ -14418,9 +14418,10 @@ exports.default = Presenter;
 function PromptList(props) {
     function sendPrompt(e) {
         e.preventDefault();
-        socket.emit("new poll", {
+        socket.emit("new prompt", {
             type: "poll",
-            prompt: "What's your fav",
+            id: 23,
+            title: "What's your fav",
             choices: [{ value: "A" }, { value: "B" }, { value: "C" }]
         });
     }
@@ -14462,6 +14463,8 @@ var _react2 = _interopRequireDefault(_react);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
@@ -14471,24 +14474,6 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 var io = __webpack_require__(110);
 var socket = io();
 
-function PromptList(props) {
-    return _react2.default.createElement(
-        'ul',
-        null,
-        props.prompts.map(function (row, i) {
-            return _react2.default.createElement(Prompt, { prompt: row });
-        })
-    );
-}
-
-function Prompt(props) {
-    return _react2.default.createElement(
-        'li',
-        null,
-        props.prompt.title
-    );
-}
-
 var Student = function (_React$Component) {
     _inherits(Student, _React$Component);
 
@@ -14497,7 +14482,7 @@ var Student = function (_React$Component) {
 
         var _this = _possibleConstructorReturn(this, (Student.__proto__ || Object.getPrototypeOf(Student)).call(this, props));
 
-        _this.state = { prompts: [{ title: "A" }, { title: "Z" }], shares: [] };
+        _this.state = { prompts: [], shares: [] };
         socket.on("new prompt", function (prompt) {
             return _this.newPrompt(prompt);
         });
@@ -14513,7 +14498,12 @@ var Student = function (_React$Component) {
     _createClass(Student, [{
         key: 'newPrompt',
         value: function newPrompt(prompt) {
-            this.state.shares.append(prompt);
+            console.log("new prompt", prompt);
+            this.setState(function (previousState) {
+                return {
+                    prompts: [].concat(_toConsumableArray(previousState.prompts), [prompt])
+                };
+            });
         }
     }, {
         key: 'closePrompt',
@@ -14531,6 +14521,25 @@ var Student = function (_React$Component) {
 }(_react2.default.Component);
 
 exports.default = Student;
+
+
+function PromptList(props) {
+    return _react2.default.createElement(
+        'ul',
+        null,
+        props.prompts.map(function (row, i) {
+            return _react2.default.createElement(Prompt, { key: row.id, prompt: row });
+        })
+    );
+}
+
+function Prompt(props) {
+    return _react2.default.createElement(
+        'li',
+        null,
+        props.prompt.title
+    );
+}
 
 /***/ }),
 /* 118 */

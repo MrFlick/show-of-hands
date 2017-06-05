@@ -28,9 +28,10 @@ export default class Presenter extends React.Component {
 function PromptList(props) {
     function sendPrompt(e) {
         e.preventDefault();
-        socket.emit("new poll", {
+        socket.emit("new prompt", {
                 type: "poll",
-                prompt: "What's your fav",
+                id: 23,
+                title: "What's your fav",
                 choices: [
                     {value: "A"},
                     {value: "B"},

@@ -5,13 +5,16 @@ const socket = io();
 export default class Student extends React.Component {
     constructor(props) {
         super(props)
-        this.state = {prompts: [{title: "A"}, {title: "Z"}], shares: []};
+        this.state = {prompts: [], shares: []};
         socket.on("new prompt", (prompt) => this.newPrompt(prompt))
         socket.on("close prompt", (prompt) => this.closePrompt(prompt))
         socket.on("new share", (share) => this.newShare(share))
     }
     newPrompt(prompt) {
-        this.state.shares.append(prompt);
+        console.log("new prompt", prompt)
+        this.setState(previousState => ({
+            prompts: [...previousState.prompts, prompt]
+        }))
     }
     closePrompt(prompt) {
 
@@ -27,7 +30,7 @@ export default class Student extends React.Component {
 
 function PromptList(props) {
     return <ul>{props.prompts.map((row, i) => {
-        return <Prompt prompt={row}></Prompt>;
+        return <Prompt key={row.id} prompt={row}></Prompt>;
     })}</ul>
 }
 
