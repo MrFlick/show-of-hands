@@ -14481,7 +14481,10 @@ var Student = function (_React$Component) {
 
         var _this = _possibleConstructorReturn(this, (Student.__proto__ || Object.getPrototypeOf(Student)).call(this, props));
 
-        _this.state = { polls: [], shares: [] };
+        _this.state = { polls: [], shares: [], clientID: 0 };
+        socket.on("you are", function (client) {
+            return _this.initClient(client);
+        });
         socket.on("new poll", function (poll) {
             return _this.newPoll(poll);
         });
@@ -14498,6 +14501,11 @@ var Student = function (_React$Component) {
     }
 
     _createClass(Student, [{
+        key: 'initClient',
+        value: function initClient(client) {
+            this.setState({ clientID: client.id });
+        }
+    }, {
         key: 'refreshPolls',
         value: function refreshPolls(polls) {
             this.setState({ polls: polls });
@@ -14522,7 +14530,7 @@ var Student = function (_React$Component) {
     }, {
         key: 'render',
         value: function render() {
-            return _react2.default.createElement(PollList, { polls: this.state.polls });
+            return _react2.default.createElement(PollList, { polls: this.state.polls, client: this.state.clientID });
         }
     }]);
 
@@ -14537,7 +14545,7 @@ function PollList(props) {
         'div',
         null,
         props.polls.map(function (row, i) {
-            return _react2.default.createElement(Poll, { key: row.poll_id, poll: row });
+            return _react2.default.createElement(Poll, { key: row.poll_id, poll: row, client: props.client });
         })
     );
 }
@@ -14572,6 +14580,7 @@ var Poll = function (_React$Component2) {
             var poll = this.props.poll;
             var resp = {
                 poll_id: poll.poll_id,
+                client_id: this.props.client,
                 value: this.state.value
             };
             socket.emit("poll response", resp);

@@ -12,8 +12,25 @@ app.get("*", function(req, res) {
     res.sendFile(__dirname + '/build/index.html');
 });
 
+var getClientID = (function() {
+    var clients = new Map();
+    return function getClientID(socket) {
+        let clientIP = socket.request.connection.remoteAddress;
+        let clientID = 0;
+        if (clients.has(clientIP)) {
+            clientID = clients.get(clientIP);
+        } else {
+            clientID = Map.length;
+            clients.set(clientIP, clientID);
+        }
+        return clientID
+    }
+})();
+
 io.on('connection', function(socket) {
     console.log("a user connected");
+    let clientID = getClientID(socket);
+    socket.emit("you are", {id: clientID});
     socket.on("add poll", function(msg) {
         data.addPoll(msg).then((poll) => {
             io.emit("new poll", poll);

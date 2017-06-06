@@ -5,11 +5,15 @@ const socket = io();
 export default class Student extends React.Component {
     constructor(props) {
         super(props)
-        this.state = {polls: [], shares: []};
+        this.state = {polls: [], shares: [], clientID: -1};
+        socket.on("you are", (client) => this.initClient(client))
         socket.on("new poll", (poll) => this.newPoll(poll))
         socket.on("close poll", (poll) => this.closePoll(poll))
         socket.on("poll list", (polls) => this.refreshPolls(polls))
         socket.on("new share", (share) => this.newShare(share))
+    }
+    initClient(client) {
+        this.setState({clientID: client.id});
     }
     refreshPolls(polls) {
         this.setState({polls: polls});
@@ -27,14 +31,14 @@ export default class Student extends React.Component {
     }
     render() {
         return (
-            <PollList polls={this.state.polls}></PollList>
+            <PollList polls={this.state.polls} client={this.state.clientID}></PollList>
         )
     }
 }
 
 function PollList(props) {
     return <div>{props.polls.map((row, i) => {
-        return <Poll key={row.poll_id} poll={row}></Poll>;
+        return <Poll key={row.poll_id} poll={row} client={props.client}></Poll>;
     })}</div>
 }
 
@@ -57,6 +61,7 @@ class Poll extends React.Component {
         let poll = this.props.poll;
         let resp = {
             poll_id: poll.poll_id,
+            client_id: this.props.client,
             value: this.state.value
         };
         socket.emit("poll response", resp);
