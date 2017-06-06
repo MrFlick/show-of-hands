@@ -56,10 +56,23 @@ var DataStore = function(dbpath) {
 	};
 
 	this.getPolls = function(poll_id) {
-		return getAll(db, "SELECT * FROM polls");
+		return getAll(db, "SELECT * FROM polls").then((polls) => {
+			return polls.map((poll) => {
+				if (poll.options) {
+					poll.options = JSON.parse(poll.options)
+				}
+				return poll;
+			});
+		});
 	};
+
 	this.getPoll = function(poll_id) {
-		return getOne(db, "SELECT * FROM polls where poll_id=?", poll_id);
+		return getOne(db, "SELECT * FROM polls where poll_id=?", poll_id).then((poll) => {
+			if (poll.options) {
+				poll.options = JSON.parse(poll.options)
+			}
+			return poll;
+		});
 	};
 
     this.addPoll = function(prompt) {

@@ -15,7 +15,6 @@ export default class Student extends React.Component {
         this.setState({polls: polls});
     }
     newPoll(poll) {
-        console.log("new poll", prompt)
         this.setState(previousState => ({
             polls: [...previousState.polls, poll]
         }))
@@ -34,11 +33,64 @@ export default class Student extends React.Component {
 }
 
 function PollList(props) {
-    return <ul>{props.polls.map((row, i) => {
+    return <div>{props.polls.map((row, i) => {
         return <Poll key={row.poll_id} poll={row}></Poll>;
-    })}</ul>
+    })}</div>
 }
 
-function Poll(props) {
-   return <li>{props.poll.title}</li>; 
+class Poll extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            answered: false,
+            value: null
+        }
+
+        this.handleChange = this.handleChange.bind(this);
+        this.handleSubmit = this.handleSubmit.bind(this);
+    }
+    handleChange(e) {
+        this.setState({value: e.target.value});
+    }
+    handleSubmit(e) {
+        e.preventDefault();
+        let poll = this.props.poll;
+        let resp = {
+            poll_id: poll.poll_id,
+            value: this.state.value
+        };
+        socket.emit("poll response", resp);
+        this.setState({answered: true});
+        console.log("submitted", resp);
+    }
+    render() {
+        let state = this.state;
+        function bclass(x) {
+            if (state.answered) {
+                if (state.value==x) {
+                    return "btn btn-primary"
+                } else {
+                    return "btn btn-secondary"
+                }
+            } else {
+                return "btn btn-outline-primary"
+            }
+        }
+        let poll = this.props.poll;
+        let input;
+        if (poll.type=="multiple_choice") {
+            if (poll.options && poll.options.values) {
+                input = poll.options.values.map((x, i) => {
+                    return <button className={bclass(x)} onClick={this.handleChange} value={x} key={x}>{x}</button>
+                });
+            } 
+        } else {
+            input = <div><textarea style={{width: "100%", height: "100px"}} onChange={this.handleChange}/><button className="btn btn-outline-primary">submit</button></div>;
+        }
+        return <div className="card"><form onSubmit={this.handleSubmit}>
+            <div className="card-header">{poll.title}</div>
+            <div className="card-block">{input}</div>
+            </form></div>; 
+    }    
+    
 }

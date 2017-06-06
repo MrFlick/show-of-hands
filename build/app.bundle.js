@@ -14505,7 +14505,6 @@ var Student = function (_React$Component) {
     }, {
         key: 'newPoll',
         value: function newPoll(poll) {
-            console.log("new poll", prompt);
             this.setState(function (previousState) {
                 return {
                     polls: [].concat(_toConsumableArray(previousState.polls), [poll])
@@ -14535,7 +14534,7 @@ exports.default = Student;
 
 function PollList(props) {
     return _react2.default.createElement(
-        'ul',
+        'div',
         null,
         props.polls.map(function (row, i) {
             return _react2.default.createElement(Poll, { key: row.poll_id, poll: row });
@@ -14543,13 +14542,106 @@ function PollList(props) {
     );
 }
 
-function Poll(props) {
-    return _react2.default.createElement(
-        'li',
-        null,
-        props.poll.title
-    );
-}
+var Poll = function (_React$Component2) {
+    _inherits(Poll, _React$Component2);
+
+    function Poll(props) {
+        _classCallCheck(this, Poll);
+
+        var _this2 = _possibleConstructorReturn(this, (Poll.__proto__ || Object.getPrototypeOf(Poll)).call(this, props));
+
+        _this2.state = {
+            answered: false,
+            value: null
+        };
+
+        _this2.handleChange = _this2.handleChange.bind(_this2);
+        _this2.handleSubmit = _this2.handleSubmit.bind(_this2);
+        return _this2;
+    }
+
+    _createClass(Poll, [{
+        key: 'handleChange',
+        value: function handleChange(e) {
+            this.setState({ value: e.target.value });
+        }
+    }, {
+        key: 'handleSubmit',
+        value: function handleSubmit(e) {
+            e.preventDefault();
+            var poll = this.props.poll;
+            var resp = {
+                poll_id: poll.poll_id,
+                value: this.state.value
+            };
+            socket.emit("poll response", resp);
+            this.setState({ answered: true });
+            console.log("submitted", resp);
+        }
+    }, {
+        key: 'render',
+        value: function render() {
+            var _this3 = this;
+
+            var state = this.state;
+            function bclass(x) {
+                if (state.answered) {
+                    if (state.value == x) {
+                        return "btn btn-primary";
+                    } else {
+                        return "btn btn-secondary";
+                    }
+                } else {
+                    return "btn btn-outline-primary";
+                }
+            }
+            var poll = this.props.poll;
+            var input = void 0;
+            if (poll.type == "multiple_choice") {
+                if (poll.options && poll.options.values) {
+                    input = poll.options.values.map(function (x, i) {
+                        return _react2.default.createElement(
+                            'button',
+                            { className: bclass(x), onClick: _this3.handleChange, value: x, key: x },
+                            x
+                        );
+                    });
+                }
+            } else {
+                input = _react2.default.createElement(
+                    'div',
+                    null,
+                    _react2.default.createElement('textarea', { style: { width: "100%", height: "100px" }, onChange: this.handleChange }),
+                    _react2.default.createElement(
+                        'button',
+                        { className: 'btn btn-outline-primary' },
+                        'submit'
+                    )
+                );
+            }
+            return _react2.default.createElement(
+                'div',
+                { className: 'card' },
+                _react2.default.createElement(
+                    'form',
+                    { onSubmit: this.handleSubmit },
+                    _react2.default.createElement(
+                        'div',
+                        { className: 'card-header' },
+                        poll.title
+                    ),
+                    _react2.default.createElement(
+                        'div',
+                        { className: 'card-block' },
+                        input
+                    )
+                )
+            );
+        }
+    }]);
+
+    return Poll;
+}(_react2.default.Component);
 
 /***/ }),
 /* 118 */
