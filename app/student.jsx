@@ -1,4 +1,5 @@
 import React from 'react';
+import debounce from 'lodash/debounce';
 const io = require('socket.io-client');
 const socket = io();
 
@@ -85,13 +86,13 @@ class Poll extends React.Component {
         }
 
         this.handleChange = this.handleChange.bind(this);
+        this.handleTextChange = this.handleTextChange.bind(this);
+        this.handleChangeDebounce = debounce(this.handleChange, 500).bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
     }
     handleChange(e) {
+        console.log("change");
         this.setState({value: e.target.value});
-    }
-    handleSubmit(e) {
-        e.preventDefault();
         let poll = this.props.poll;
         let resp = {
             poll_id: poll.poll_id,
@@ -100,7 +101,13 @@ class Poll extends React.Component {
         };
         socket.emit("poll response", resp);
         this.setState({answered: true});
-        console.log("submitted", resp);
+    }
+    handleTextChange(e) {
+        e.persist()
+        this.handleChangeDebounce(e);;
+    }
+    handleSubmit(e) {
+        e.preventDefault();
     }
     render() {
         let state = this.state;
@@ -124,7 +131,7 @@ class Poll extends React.Component {
                 });
             } 
         } else {
-            input = <div><textarea style={{width: "100%", height: "100px"}} onChange={this.handleChange}/><button className="btn btn-outline-primary">submit</button></div>;
+            input = <div><textarea style={{width: "100%", height: "100px"}} onChange={this.handleTextChange}/></div>;
         }
         return <div className="card"><form onSubmit={this.handleSubmit}>
             <div className="card-header">{poll.title}</div>
