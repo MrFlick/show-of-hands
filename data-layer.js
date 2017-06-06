@@ -19,7 +19,7 @@ var getInsertDBCallBack = function(resolve,reject) {
 			console.log(err);
 			reject(err);
 		} else {
-			resolve(this.lastID);
+			resolve({newID: this.lastID, changes: this.changes});
 		}
 	};
 };
@@ -45,6 +45,41 @@ function insert(db, sql) {
 	return new Promise(function(resolve, reject) {
 		args.push(getInsertDBCallBack(resolve, reject));
 		db.run.apply(db, args);
+	});
+}
+
+function upsert(db, table, keys, fields, values) {
+	var key_values = values.splice(0, keys.length);
+	var where_clause = "WHERE " + keys.map((val,i) => {return val + "=?"}).join(" and ");
+	var values_clause = "VALUES (" + keys.concat(fields).map( (val)=> {return "?"}).join(", ") + ")";
+	var set_clause = "SET " + fields.map((val,i) => {return val + "=?"}).join(", ")
+	var sql_select = "SELECT rowid FROM " + table + " " + where_clause;
+	var sql_update = "UPDATE " + table + " " + set_clause + " WHERE rowid=?";
+	var sql_insert = "INSERT INTO " + table + "(" + keys.concat(fields).join(",") + ") " + values_clause;
+	return new Promise(function(resolve, reject) {
+		db.serialize(() => {
+			db.get.apply(db, [sql_select].concat(key_values, function(err, row) {
+				if (row) {
+					let args = [sql_update].concat(values, row.rowid, function(err, row2) {
+						if (err !== null) {
+							reject(err);
+						} else {
+							resolve({newID: row.rowid, action: "update"})
+						}
+					})
+					db.run.apply(db, args);
+				} else {
+					let args = [sql_insert].concat(key_values, values, function(err, row2) {
+						if (err !== null) {
+							reject(err);
+						} else {
+							resolve({newID: this.lastID, action: "insert"})
+						}
+					})
+					db.run.apply(db, args);
+				}
+			}));
+		});
 	});
 }
 
@@ -77,9 +112,18 @@ var DataStore = function(dbpath) {
 
     this.addPoll = function(prompt) {
         return insert(db, "INSERT INTO polls (prompt_id, title, type, options) " +
-            "values (?, ?, ?, ?)", prompt.prompt_id, prompt.title, prompt.type, prompt.options).then((newid) => {
-                return this.getPoll(newid)
+            "values (?, ?, ?, ?)", prompt.prompt_id, prompt.title, prompt.type, prompt.options).then((result) => {
+                return this.getPoll(result.newID)
             })
+    };
+
+	this.addPollResponse = function(resp) {
+        return upsert(db, "poll_responses",  ["poll_id", "client_id"], ["response"],
+            [resp.poll_id, resp.client_id, resp.value]).then((actions) => {
+				resp.id = actions.newID;
+				console.log(resp)
+				return resp;
+			});
     };
 
 	this.close = function() {

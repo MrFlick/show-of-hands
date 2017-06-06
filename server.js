@@ -36,6 +36,11 @@ io.on('connection', function(socket) {
             io.emit("new poll", poll);
         })
     });
+    socket.on("poll response", function(msg) {
+        data.addPollResponse(msg).then((resp) => {
+            io.emit("new poll response", resp);
+        })
+    });
     socket.on("disconnect", function() {
         console.log("user disconnected");
     });

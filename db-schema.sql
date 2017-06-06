@@ -18,6 +18,7 @@ CREATE TABLE polls (
 
 CREATE TABLE poll_responses (
 	poll_id INTEGER NOT NULL,
-	user_id INTEGER,
-	response TEXT
+	client_id INTEGER,
+	response TEXT,
+	PRIMARY KEY (poll_id, client_id)
 );

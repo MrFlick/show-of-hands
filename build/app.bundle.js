@@ -14481,7 +14481,7 @@ var Student = function (_React$Component) {
 
         var _this = _possibleConstructorReturn(this, (Student.__proto__ || Object.getPrototypeOf(Student)).call(this, props));
 
-        _this.state = { polls: [], shares: [], clientID: 0 };
+        _this.state = { polls: [], shares: [], clientID: -1 };
         socket.on("you are", function (client) {
             return _this.initClient(client);
         });
