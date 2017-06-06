@@ -5,12 +5,13 @@ const socket = io();
 export default class Student extends React.Component {
     constructor(props) {
         super(props)
-        this.state = {polls: [], shares: [], clientID: -1};
+        this.state = {polls: [], snippets: [], clientID: -1};
         socket.on("you are", (client) => this.initClient(client))
         socket.on("new poll", (poll) => this.newPoll(poll))
         socket.on("close poll", (poll) => this.closePoll(poll))
         socket.on("poll list", (polls) => this.refreshPolls(polls))
-        socket.on("new share", (share) => this.newShare(share))
+        socket.on("new snippet", (snip) => this.newSnippet(snip))
+        socket.on("snippet list", (snips) => this.refreshSnippets(snips))
     }
     initClient(client) {
         this.setState({clientID: client.id});
@@ -26,14 +27,47 @@ export default class Student extends React.Component {
     closePoll(poll) {
 
     }
-    componentDidMount() {
+    refreshSnippets(snips) {
+        this.setState({snippets: snips});
+    }
+    newSnippet(snip) {
+        this.setState(previousState => ({
+            snippets: [...previousState.snippets, snip]
+        }))
+    }
+    refresh() {
         socket.emit("request poll list")
+        socket.emit("request snippet list")
+    }
+    componentDidMount() {
+        this.refresh()
     }
     render() {
-        return (
-            <PollList polls={this.state.polls} client={this.state.clientID}></PollList>
-        )
+        return <div className="row">
+            <div className="col-6">
+                <h2>Questions</h2>
+                <PollList polls={this.state.polls} client={this.state.clientID}/>
+            </div><div className="col-6">
+                <h2>Snippets</h2>
+                <SnippetList snippets={this.state.snippets}/>
+            </div>
+        </div>
+        
     }
+}
+
+function SnippetList(props) {
+    return <div>{props.snippets.map((row, i) => {
+        return <Snippet key={row.snippet_id} snippet={row}/>;
+    })}</div>
+}
+
+function Snippet(props) {
+    let snippet = props.snippet;
+    return <div className="card">
+        <div className="card-header">{snippet.title}</div>
+        <div className="card-block">{snippet.code}</div>
+    </div>; 
 }
 
 function PollList(props) {

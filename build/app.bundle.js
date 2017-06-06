@@ -14362,6 +14362,8 @@ var _react2 = _interopRequireDefault(_react);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
@@ -14379,7 +14381,7 @@ var Presenter = function (_React$Component) {
 
         var _this = _possibleConstructorReturn(this, (Presenter.__proto__ || Object.getPrototypeOf(Presenter)).call(this, props));
 
-        _this.state = { prompts: [], shares: [] };
+        _this.state = { prompts: [], snippets: [] };
         socket.on("prompt list", function (prompts) {
             return _this.refreshPrompts(prompts);
         });
@@ -14400,7 +14402,30 @@ var Presenter = function (_React$Component) {
     }, {
         key: 'render',
         value: function render() {
-            return _react2.default.createElement(PromptList, { prompts: this.state.prompts });
+            return _react2.default.createElement(
+                'div',
+                { className: 'row' },
+                _react2.default.createElement(
+                    'div',
+                    { className: 'col-6' },
+                    _react2.default.createElement(
+                        'h2',
+                        null,
+                        'Prompts'
+                    ),
+                    _react2.default.createElement(PromptList, { prompts: this.state.prompts })
+                ),
+                _react2.default.createElement(
+                    'div',
+                    { className: 'col-6' },
+                    _react2.default.createElement(
+                        'h2',
+                        null,
+                        'Snippets'
+                    ),
+                    _react2.default.createElement(SnippetList, { snippets: this.state.snippets })
+                )
+            );
         }
     }]);
 
@@ -14409,6 +14434,59 @@ var Presenter = function (_React$Component) {
 
 exports.default = Presenter;
 
+var SnippetList = function (_React$Component2) {
+    _inherits(SnippetList, _React$Component2);
+
+    function SnippetList(props) {
+        _classCallCheck(this, SnippetList);
+
+        var _this2 = _possibleConstructorReturn(this, (SnippetList.__proto__ || Object.getPrototypeOf(SnippetList)).call(this, props));
+
+        _this2.state = { title: "", code: "" };
+        _this2.handleInputChange = _this2.handleInputChange.bind(_this2);
+        _this2.handleSubmit = _this2.handleSubmit.bind(_this2);
+        return _this2;
+    }
+
+    _createClass(SnippetList, [{
+        key: 'handleInputChange',
+        value: function handleInputChange(e) {
+            var target = e.target;
+            var value = target.value;
+            var name = target.name;
+
+            this.setState(_defineProperty({}, name, value));
+        }
+    }, {
+        key: 'handleSubmit',
+        value: function handleSubmit(e) {
+            e.preventDefault();
+            socket.emit("add snippet", this.state);
+            this.setState({ title: "", code: "" });
+        }
+    }, {
+        key: 'render',
+        value: function render() {
+            return _react2.default.createElement(
+                'form',
+                { onSubmit: this.handleSubmit },
+                _react2.default.createElement('input', { name: 'title', value: this.state.title,
+                    onChange: this.handleInputChange,
+                    style: { width: "100%" } }),
+                _react2.default.createElement('textarea', { name: 'code', value: this.state.code,
+                    onChange: this.handleInputChange,
+                    style: { width: "100%", height: "200px" } }),
+                _react2.default.createElement(
+                    'button',
+                    { style: { width: "100%" }, className: 'btn btn-primary' },
+                    'Send'
+                )
+            );
+        }
+    }]);
+
+    return SnippetList;
+}(_react2.default.Component);
 
 function PromptList(props) {
     return _react2.default.createElement(
@@ -14422,7 +14500,6 @@ function PromptList(props) {
 
 function Prompt(props) {
     var prompt = props.prompt;
-    console.log(prompt);
     function sendPrompt(e) {
         e.preventDefault();
         socket.emit("add poll", prompt);
@@ -14481,7 +14558,7 @@ var Student = function (_React$Component) {
 
         var _this = _possibleConstructorReturn(this, (Student.__proto__ || Object.getPrototypeOf(Student)).call(this, props));
 
-        _this.state = { polls: [], shares: [], clientID: -1 };
+        _this.state = { polls: [], snippets: [], clientID: -1 };
         socket.on("you are", function (client) {
             return _this.initClient(client);
         });
@@ -14494,8 +14571,11 @@ var Student = function (_React$Component) {
         socket.on("poll list", function (polls) {
             return _this.refreshPolls(polls);
         });
-        socket.on("new share", function (share) {
-            return _this.newShare(share);
+        socket.on("new snippet", function (snip) {
+            return _this.newSnippet(snip);
+        });
+        socket.on("snippet list", function (snips) {
+            return _this.refreshSnippets(snips);
         });
         return _this;
     }
@@ -14523,14 +14603,57 @@ var Student = function (_React$Component) {
         key: 'closePoll',
         value: function closePoll(poll) {}
     }, {
+        key: 'refreshSnippets',
+        value: function refreshSnippets(snips) {
+            this.setState({ snippets: snips });
+        }
+    }, {
+        key: 'newSnippet',
+        value: function newSnippet(snip) {
+            this.setState(function (previousState) {
+                return {
+                    snippets: [].concat(_toConsumableArray(previousState.snippets), [snip])
+                };
+            });
+        }
+    }, {
+        key: 'refresh',
+        value: function refresh() {
+            socket.emit("request poll list");
+            socket.emit("request snippet list");
+        }
+    }, {
         key: 'componentDidMount',
         value: function componentDidMount() {
-            socket.emit("request poll list");
+            this.refresh();
         }
     }, {
         key: 'render',
         value: function render() {
-            return _react2.default.createElement(PollList, { polls: this.state.polls, client: this.state.clientID });
+            return _react2.default.createElement(
+                'div',
+                { className: 'row' },
+                _react2.default.createElement(
+                    'div',
+                    { className: 'col-6' },
+                    _react2.default.createElement(
+                        'h2',
+                        null,
+                        'Questions'
+                    ),
+                    _react2.default.createElement(PollList, { polls: this.state.polls, client: this.state.clientID })
+                ),
+                _react2.default.createElement(
+                    'div',
+                    { className: 'col-6' },
+                    _react2.default.createElement(
+                        'h2',
+                        null,
+                        'Snippets'
+                    ),
+                    _react2.default.createElement(SnippetList, { snippets: this.state.snippets })
+                )
+            );
         }
     }]);
 
@@ -14539,6 +14662,34 @@ var Student = function (_React$Component) {
 
 exports.default = Student;
 
+
+function SnippetList(props) {
+    return _react2.default.createElement(
+        'div',
+        null,
+        props.snippets.map(function (row, i) {
+            return _react2.default.createElement(Snippet, { key: row.snippet_id, snippet: row });
+        })
+    );
+}
+
+function Snippet(props) {
+    var snippet = props.snippet;
+    return _react2.default.createElement(
+        'div',
+        { className: 'card' },
+        _react2.default.createElement(
+            'div',
+            { className: 'card-header' },
+            snippet.title
+        ),
+        _react2.default.createElement(
+            'div',
+            { className: 'card-block' },
+            snippet.code
+        )
+    );
+}
 
 function PollList(props) {
     return _react2.default.createElement(

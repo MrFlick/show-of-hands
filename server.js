@@ -4,7 +4,7 @@ var http = require('http').createServer(app);
 var io = require('socket.io')(http);
 var config = require('./config');
 
-
+var http_port = config.port || 41742;
 var data = require("./data-layer").getDataStore(config.db_path);
 
 app.use(express.static(__dirname + '/build'))
@@ -36,6 +36,11 @@ io.on('connection', function(socket) {
             io.emit("new poll", poll);
         })
     });
+    socket.on("add snippet", function(msg) {
+        data.addSnippet(msg).then((snip) => {
+            io.emit("new snippet", snip);
+        })
+    });
     socket.on("poll response", function(msg) {
         data.addPollResponse(msg).then((resp) => {
             io.emit("new poll response", resp);
@@ -54,8 +59,13 @@ io.on('connection', function(socket) {
             socket.emit("poll list", polls);
         });
     });
+    socket.on("request snippet list", function() {
+        data.getSnippets().then((snips) => {;
+            socket.emit("snippet list", snips);
+        });
+    });
 });
 
-http.listen(3000, function() {
-    console.log("listening on *:3000")
+http.listen(http_port, function() {
+    console.log("listening on *:" + http_port)
 });

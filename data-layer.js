@@ -121,10 +121,24 @@ var DataStore = function(dbpath) {
         return upsert(db, "poll_responses",  ["poll_id", "client_id"], ["response"],
             [resp.poll_id, resp.client_id, resp.value]).then((actions) => {
 				resp.id = actions.newID;
-				console.log(resp)
 				return resp;
 			});
     };
+
+    this.addSnippet = function(snip) {
+        return insert(db, "INSERT INTO snippets (title, code) " +
+            "values (?, ?) ", snip.title, snip.code).then((result) => {
+                return this.getSnippet(result.newID)
+            })
+    };
+
+	this.getSnippets = function() {
+		return getAll(db, "SELECT * FROM snippets");
+	};
+
+	this.getSnippet = function(snippet_id) {
+		return getOne(db, "SELECT * FROM snippets where snipped_id=?", snippet_id);
+	};
 
 	this.close = function() {
 		db.close();

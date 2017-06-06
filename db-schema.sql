@@ -22,3 +22,9 @@ CREATE TABLE poll_responses (
 	response TEXT,
 	PRIMARY KEY (poll_id, client_id)
 );
+
+CREATE TABLE snippets (
+	snippet_id INTEGER PRIMARY KEY,
+	title TEXT,
+	code TEXT
+);
