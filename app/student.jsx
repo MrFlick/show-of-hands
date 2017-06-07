@@ -25,7 +25,9 @@ export default class Student extends React.Component {
         }))
     }
     closePoll(poll) {
-
+        this.setState({
+            polls: this.state.polls.filter((p)=>p.poll_id != poll.poll_id)
+        })
     }
     refreshSnippets(snips) {
         this.setState({snippets: snips});

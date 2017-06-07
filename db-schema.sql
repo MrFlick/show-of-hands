@@ -13,7 +13,8 @@ CREATE TABLE polls (
 	prompt_id INTEGER,
 	title TEXT NOT NULL,
 	type TEXT NOT NULL,
-	options TEXT
+	options TEXT,
+	is_open INTEGER NOT NULL DEFAULT 1
 );
 
 CREATE TABLE poll_responses (

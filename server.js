@@ -36,6 +36,11 @@ io.on('connection', function(socket) {
             io.emit("new poll", poll);
         })
     });
+    socket.on("close poll", function(msg) {
+        data.closePoll(msg).then(() => {
+            io.emit("close poll", msg);
+        })
+    });
     socket.on("add snippet", function(msg) {
         data.addSnippet(msg).then((snip) => {
             io.emit("new snippet", snip);
@@ -56,6 +61,11 @@ io.on('connection', function(socket) {
     });
     socket.on("request poll list", function() {
         data.getPolls().then((polls) => {;
+            socket.emit("poll list", polls);
+        });
+    });
+    socket.on("request poll list all", function() {
+        data.getPolls(true).then((polls) => {;
             socket.emit("poll list", polls);
         });
     });

@@ -48,6 +48,14 @@ function insert(db, sql) {
 	});
 }
 
+function update(db, sql) {
+	var args = [].slice.call(arguments, 1);
+	return new Promise(function(resolve, reject) {
+		args.push(getDefaultDBCallBack(resolve, reject));
+		db.run.apply(db, args);
+	});
+}
+
 function upsert(db, table, keys, fields, values) {
 	var key_values = values.splice(0, keys.length);
 	var where_clause = "WHERE " + keys.map((val,i) => {return val + "=?"}).join(" and ");
@@ -90,8 +98,12 @@ var DataStore = function(dbpath) {
 		return getAll(db, "SELECT * FROM prompts");
 	};
 
-	this.getPolls = function(poll_id) {
-		return getAll(db, "SELECT * FROM polls").then((polls) => {
+	this.getPolls = function(include_closed) {
+		var sql = "SELECT * FROM polls"
+		if (!!!include_closed) {
+			sql = sql + " WHERE is_open>0"
+		}
+		return getAll(db, sql).then((polls) => {
 			return polls.map((poll) => {
 				if (poll.options) {
 					poll.options = JSON.parse(poll.options)
@@ -115,6 +127,10 @@ var DataStore = function(dbpath) {
             "values (?, ?, ?, ?)", prompt.prompt_id, prompt.title, prompt.type, prompt.options).then((result) => {
                 return this.getPoll(result.newID)
             })
+    };
+
+	this.closePoll = function(poll) {
+        return update(db, "UPDATE polls SET is_open=0 WHERE poll_id=?", poll.poll_id);
     };
 
 	this.addPollResponse = function(resp) {

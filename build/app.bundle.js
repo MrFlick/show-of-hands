@@ -14328,6 +14328,8 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
@@ -14343,9 +14345,18 @@ var Presenter = function (_React$Component) {
         var _this = _possibleConstructorReturn(this, (Presenter.__proto__ || Object.getPrototypeOf(Presenter)).call(this, props));
 
         _this.socket = props.socket;
-        _this.state = { prompts: [], snippets: [] };
+        _this.state = { prompts: [], snippets: [], polls: [] };
         _this.socket.on("prompt list", function (prompts) {
             return _this.refreshPrompts(prompts);
+        });
+        _this.socket.on("poll list", function (polls) {
+            return _this.refreshPolls(polls);
+        });
+        _this.socket.on("new poll", function (poll) {
+            return _this.newPoll(poll);
+        });
+        _this.socket.on("close poll", function (poll) {
+            return _this.closePoll(poll);
         });
         return _this;
     }
@@ -14354,12 +14365,29 @@ var Presenter = function (_React$Component) {
         key: "refreshPrompts",
         value: function refreshPrompts(prompts) {
             this.setState({ prompts: prompts });
-            console.log(prompts);
+        }
+    }, {
+        key: "newPoll",
+        value: function newPoll(poll) {
+            this.setState(function (previousState) {
+                return {
+                    polls: [].concat(_toConsumableArray(previousState.polls), [poll])
+                };
+            });
+        }
+    }, {
+        key: "closePoll",
+        value: function closePoll(poll) {}
+    }, {
+        key: "refreshPolls",
+        value: function refreshPolls(polls) {
+            this.setState({ polls: polls });
         }
     }, {
         key: "componentDidMount",
         value: function componentDidMount() {
             this.socket.emit("request prompt list");
+            this.socket.emit("request poll list all");
         }
     }, {
         key: "render",
@@ -14375,7 +14403,13 @@ var Presenter = function (_React$Component) {
                         null,
                         "Prompts"
                     ),
-                    _react2.default.createElement(PromptList, { prompts: this.state.prompts, socket: this.socket })
+                    _react2.default.createElement(PromptList, { prompts: this.state.prompts, socket: this.socket }),
+                    _react2.default.createElement(
+                        "h2",
+                        null,
+                        "Polls"
+                    ),
+                    _react2.default.createElement(PollList, { polls: this.state.polls, socket: this.socket })
                 ),
                 _react2.default.createElement(
                     "div",
@@ -14485,6 +14519,88 @@ function Prompt(props) {
     );
 }
 
+function PollList(props) {
+    var socket = props.socket;
+    return _react2.default.createElement(
+        "div",
+        null,
+        props.polls.map(function (row) {
+            return _react2.default.createElement(Poll, { key: row.poll_id, poll: row, socket: socket });
+        })
+    );
+}
+
+var Poll = function (_React$Component3) {
+    _inherits(Poll, _React$Component3);
+
+    function Poll(props) {
+        _classCallCheck(this, Poll);
+
+        var _this3 = _possibleConstructorReturn(this, (Poll.__proto__ || Object.getPrototypeOf(Poll)).call(this, props));
+
+        var poll = props.poll;
+        _this3.state = {
+            poll_id: poll.poll_id,
+            title: poll.title,
+            is_open: poll.is_open
+        };
+        _this3.socket = props.socket;
+        _this3.handleOptionChange = _this3.handleOptionChange.bind(_this3);
+        _this3.handleSubmit = _this3.handleSubmit.bind(_this3);
+        return _this3;
+    }
+
+    _createClass(Poll, [{
+        key: "handleOptionChange",
+        value: function handleOptionChange(e) {
+            this.setState({
+                is_open: e.target.value
+            });
+        }
+    }, {
+        key: "handleSubmit",
+        value: function handleSubmit(e) {
+            e.preventDefault();
+            //socket.emit("close poll", poll);
+        }
+    }, {
+        key: "closePoll",
+        value: function closePoll() {}
+    }, {
+        key: "render",
+        value: function render() {
+            var name = "status" + this.state.poll_id;
+            return _react2.default.createElement(
+                "div",
+                null,
+                _react2.default.createElement(
+                    "form",
+                    { onSubmit: this.handleSubmit },
+                    _react2.default.createElement(
+                        "div",
+                        { className: "btn-group", "data-toggle": "buttons" },
+                        _react2.default.createElement(
+                            "label",
+                            { className: "btn btn-primary " + (this.state.is_open > 0 ? 'active' : '') },
+                            _react2.default.createElement("input", { type: "radio", name: name, value: 1, checked: this.state.is_open > 0, onChange: this.handleOptionChange }),
+                            "Open"
+                        ),
+                        _react2.default.createElement(
+                            "label",
+                            { className: "btn btn-primary " + (this.state.is_open == 0 ? 'active' : '') },
+                            _react2.default.createElement("input", { type: "radio", name: name, value: 0, checked: this.state.is_open == 0, onChange: this.handleOptionChange }),
+                            "Closed"
+                        )
+                    )
+                ),
+                this.state.title
+            );
+        }
+    }]);
+
+    return Poll;
+}(_react2.default.Component);
+
 /***/ }),
 /* 119 */
 /***/ (function(module, exports, __webpack_require__) {
@@ -14568,7 +14684,13 @@ var Student = function (_React$Component) {
         }
     }, {
         key: 'closePoll',
-        value: function closePoll(poll) {}
+        value: function closePoll(poll) {
+            this.setState({
+                polls: this.state.polls.filter(function (p) {
+                    return p.poll_id != poll.poll_id;
+                })
+            });
+        }
     }, {
         key: 'refreshSnippets',
         value: function refreshSnippets(snips) {
