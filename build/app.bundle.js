@@ -14345,10 +14345,7 @@ var Presenter = function (_React$Component) {
         var _this = _possibleConstructorReturn(this, (Presenter.__proto__ || Object.getPrototypeOf(Presenter)).call(this, props));
 
         _this.socket = props.socket;
-        _this.state = { prompts: [], snippets: [], polls: [] };
-        _this.socket.on("prompt list", function (prompts) {
-            return _this.refreshPrompts(prompts);
-        });
+        _this.state = { snippets: [], polls: [] };
         _this.socket.on("poll list", function (polls) {
             return _this.refreshPolls(polls);
         });
@@ -14362,11 +14359,6 @@ var Presenter = function (_React$Component) {
     }
 
     _createClass(Presenter, [{
-        key: "refreshPrompts",
-        value: function refreshPrompts(prompts) {
-            this.setState({ prompts: prompts });
-        }
-    }, {
         key: "newPoll",
         value: function newPoll(poll) {
             this.setState(function (previousState) {
@@ -14386,7 +14378,6 @@ var Presenter = function (_React$Component) {
     }, {
         key: "componentDidMount",
         value: function componentDidMount() {
-            this.socket.emit("request prompt list");
             this.socket.emit("request poll list all");
         }
     }, {
@@ -14398,12 +14389,6 @@ var Presenter = function (_React$Component) {
                 _react2.default.createElement(
                     "div",
                     { className: "col-6" },
-                    _react2.default.createElement(
-                        "h2",
-                        null,
-                        "Prompts"
-                    ),
-                    _react2.default.createElement(PromptList, { prompts: this.state.prompts, socket: this.socket }),
                     _react2.default.createElement(
                         "h2",
                         null,
@@ -14485,40 +14470,6 @@ var SnippetList = function (_React$Component2) {
     return SnippetList;
 }(_react2.default.Component);
 
-function PromptList(props) {
-    var socket = props.socket;
-    return _react2.default.createElement(
-        "div",
-        null,
-        props.prompts.map(function (row) {
-            return _react2.default.createElement(Prompt, { key: row.prompt_id, prompt: row, socket: socket });
-        })
-    );
-}
-
-function Prompt(props) {
-    var prompt = props.prompt;
-    var socket = props.socket;
-    function sendPrompt(e) {
-        e.preventDefault();
-        socket.emit("add poll", prompt);
-    }
-    return _react2.default.createElement(
-        "div",
-        null,
-        _react2.default.createElement(
-            "form",
-            { onSubmit: sendPrompt },
-            _react2.default.createElement(
-                "button",
-                null,
-                "Send Poll"
-            )
-        ),
-        prompt.title
-    );
-}
-
 function PollList(props) {
     var socket = props.socket;
     return _react2.default.createElement(
@@ -14539,23 +14490,52 @@ var Poll = function (_React$Component3) {
         var _this3 = _possibleConstructorReturn(this, (Poll.__proto__ || Object.getPrototypeOf(Poll)).call(this, props));
 
         var poll = props.poll;
-        _this3.state = {
-            poll_id: poll.poll_id,
-            title: poll.title,
-            is_open: poll.is_open
-        };
+        _this3.state = poll;
         _this3.socket = props.socket;
-        _this3.handleOptionChange = _this3.handleOptionChange.bind(_this3);
+        _this3.openPoll = _this3.openPoll.bind(_this3);
+        _this3.closePoll = _this3.closePoll.bind(_this3);
         _this3.handleSubmit = _this3.handleSubmit.bind(_this3);
+        _this3.handlePollUpdate = _this3.handlePollUpdate.bind(_this3);
+        _this3.handlePollResponse = _this3.handlePollResponse.bind(_this3);
+        _this3.socket_events = {
+            "open poll": _this3.handlePollUpdate,
+            "close poll": _this3.handlePollUpdate,
+            "new poll response": _this3.handlePollResponse
+        };
         return _this3;
     }
 
     _createClass(Poll, [{
-        key: "handleOptionChange",
-        value: function handleOptionChange(e) {
-            this.setState({
-                is_open: e.target.value
+        key: "componentDidMount",
+        value: function componentDidMount() {
+            var _this4 = this;
+
+            Object.keys(this.socket_events).map(function (k) {
+                _this4.socket.on(k, _this4.socket_events[k]);
             });
+        }
+    }, {
+        key: "componentWillUnmount",
+        value: function componentWillUnmount() {
+            var _this5 = this;
+
+            Object.keys(this.socket_events).map(function (k) {
+                _this5.socket.off(k, _this5.socket_events[k]);
+            });
+        }
+    }, {
+        key: "handlePollResponse",
+        value: function handlePollResponse(poll) {
+            if (this.state.poll_id == poll.poll_id & poll.action == "insert") {
+                this.setState({ response_count: this.state.response_count + 1 });
+            };
+        }
+    }, {
+        key: "handlePollUpdate",
+        value: function handlePollUpdate(poll) {
+            if (this.state.poll_id == poll.poll_id) {
+                this.setState(poll);
+            };
         }
     }, {
         key: "handleSubmit",
@@ -14564,36 +14544,60 @@ var Poll = function (_React$Component3) {
             //socket.emit("close poll", poll);
         }
     }, {
+        key: "openPoll",
+        value: function openPoll() {
+            this.socket.emit("open poll", this.state);
+        }
+    }, {
         key: "closePoll",
-        value: function closePoll() {}
+        value: function closePoll() {
+            this.socket.emit("close poll", this.state);
+        }
     }, {
         key: "render",
         value: function render() {
             var name = "status" + this.state.poll_id;
+            var button = null;
+            var poll = this.state;
+            if (poll.status == 0) {
+                button = _react2.default.createElement(
+                    "button",
+                    { onClick: this.openPoll },
+                    "Open"
+                );
+            } else if (poll.status == 1) {
+                button = _react2.default.createElement(
+                    "button",
+                    { onClick: this.closePoll },
+                    "Close"
+                );
+            } else if (poll.status == 2) {
+                button = _react2.default.createElement(
+                    "button",
+                    { onClick: this.openPoll },
+                    "Re-open"
+                );
+            }
             return _react2.default.createElement(
                 "div",
-                null,
+                { className: "card" },
                 _react2.default.createElement(
                     "form",
                     { onSubmit: this.handleSubmit },
                     _react2.default.createElement(
                         "div",
-                        { className: "btn-group", "data-toggle": "buttons" },
-                        _react2.default.createElement(
-                            "label",
-                            { className: "btn btn-primary " + (this.state.is_open > 0 ? 'active' : '') },
-                            _react2.default.createElement("input", { type: "radio", name: name, value: 1, checked: this.state.is_open > 0, onChange: this.handleOptionChange }),
-                            "Open"
-                        ),
-                        _react2.default.createElement(
-                            "label",
-                            { className: "btn btn-primary " + (this.state.is_open == 0 ? 'active' : '') },
-                            _react2.default.createElement("input", { type: "radio", name: name, value: 0, checked: this.state.is_open == 0, onChange: this.handleOptionChange }),
-                            "Closed"
-                        )
+                        { className: "card-header" },
+                        this.state.title,
+                        " (",
+                        this.state.response_count,
+                        ")"
+                    ),
+                    _react2.default.createElement(
+                        "div",
+                        { className: "card-block" },
+                        button
                     )
-                ),
-                this.state.title
+                )
             );
         }
     }]);
@@ -14645,7 +14649,7 @@ var Student = function (_React$Component) {
         _this.socket.on("you are", function (client) {
             return _this.initClient(client);
         });
-        _this.socket.on("new poll", function (poll) {
+        _this.socket.on("open poll", function (poll) {
             return _this.newPoll(poll);
         });
         _this.socket.on("close poll", function (poll) {
@@ -14710,6 +14714,7 @@ var Student = function (_React$Component) {
         value: function refresh() {
             this.socket.emit("request poll list");
             this.socket.emit("request snippet list");
+            console.log("request sent");
         }
     }, {
         key: 'componentDidMount',
@@ -15163,11 +15168,11 @@ var _presenter2 = _interopRequireDefault(_presenter);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var io = __webpack_require__(122);
-var socket = io();
+var socket = io("/", { "path": "/" + 'socket.io' });
 
 _reactDom2.default.render(_react2.default.createElement(
     _reactRouterDom.BrowserRouter,
-    null,
+    { basename: "/" },
     _react2.default.createElement(
         _reactRouterDom.Switch,
         null,

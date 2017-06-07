@@ -7,7 +7,7 @@ export default class Student extends React.Component {
         this.state = {polls: [], snippets: [], clientID: -1};
         this.socket = props.socket
         this.socket.on("you are", (client) => this.initClient(client))
-        this.socket.on("new poll", (poll) => this.newPoll(poll))
+        this.socket.on("open poll", (poll) => this.newPoll(poll))
         this.socket.on("close poll", (poll) => this.closePoll(poll))
         this.socket.on("poll list", (polls) => this.refreshPolls(polls))
         this.socket.on("new snippet", (snip) => this.newSnippet(snip))
@@ -40,6 +40,7 @@ export default class Student extends React.Component {
     refresh() {
         this.socket.emit("request poll list")
         this.socket.emit("request snippet list")
+        console.log("request sent")
     }
     componentDidMount() {
         this.refresh()

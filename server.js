@@ -1,6 +1,7 @@
 var express = require('express');
 var app = express();
 var http = require('http').createServer(app);
+//var io = require('socket.io')(http, {transports: ["polling"]});
 var io = require('socket.io')(http);
 var config = require('./config');
 
@@ -36,9 +37,14 @@ io.on('connection', function(socket) {
             io.emit("new poll", poll);
         })
     });
+    socket.on("open poll", function(msg) {
+        data.openPoll(msg).then((poll) => {
+            io.emit("open poll", poll);
+        })
+    });
     socket.on("close poll", function(msg) {
-        data.closePoll(msg).then(() => {
-            io.emit("close poll", msg);
+        data.closePoll(msg).then((poll) => {
+            io.emit("close poll", poll);
         })
     });
     socket.on("add snippet", function(msg) {
@@ -47,6 +53,7 @@ io.on('connection', function(socket) {
         })
     });
     socket.on("poll response", function(msg) {
+        msg.client_id = clientID;
         data.addPollResponse(msg).then((resp) => {
             io.emit("new poll response", resp);
         })

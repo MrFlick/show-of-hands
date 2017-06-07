@@ -9,6 +9,10 @@ module.exports = {
         filename: 'app.bundle.js'
     },
     plugins: [
+        new webpack.DefinePlugin({
+            //PUB_STEM: JSON.stringify("/bdsi/")
+            PUB_STEM: JSON.stringify("/")
+        }),
         new HtmlWebpackPlugin({
             template: 'app/template.html',
             inject: 'body',

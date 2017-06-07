@@ -99,9 +99,12 @@ var DataStore = function(dbpath) {
 	};
 
 	this.getPolls = function(include_closed) {
-		var sql = "SELECT * FROM polls"
+		let sql = "SELECT polls.*, " + 
+            "(select count(*) from poll_responses " + 
+            "where poll_responses.poll_id = polls.poll_id) as response_count " + 
+            "FROM polls"
 		if (!!!include_closed) {
-			sql = sql + " WHERE is_open>0"
+			sql = sql + " WHERE status=1"
 		}
 		return getAll(db, sql).then((polls) => {
 			return polls.map((poll) => {
@@ -114,7 +117,12 @@ var DataStore = function(dbpath) {
 	};
 
 	this.getPoll = function(poll_id) {
-		return getOne(db, "SELECT * FROM polls where poll_id=?", poll_id).then((poll) => {
+		let sql = "SELECT polls.*, "+
+            "(select count(*) from poll_responses " + 
+            "where poll_responses.poll_id = polls.poll_id) as response_count " + 
+            "FROM polls " +
+            "WHERE poll_id = ?"
+        return getOne(db, sql, poll_id).then((poll) => {
 			if (poll.options) {
 				poll.options = JSON.parse(poll.options)
 			}
@@ -122,6 +130,7 @@ var DataStore = function(dbpath) {
 		});
 	};
 
+    //TODO: remove prompt
     this.addPoll = function(prompt) {
         return insert(db, "INSERT INTO polls (prompt_id, title, type, options) " +
             "values (?, ?, ?, ?)", prompt.prompt_id, prompt.title, prompt.type, prompt.options).then((result) => {
@@ -129,14 +138,24 @@ var DataStore = function(dbpath) {
             })
     };
 
-	this.closePoll = function(poll) {
-        return update(db, "UPDATE polls SET is_open=0 WHERE poll_id=?", poll.poll_id);
+	this.openPoll = function(poll) {
+        return update(db, "UPDATE polls SET status=1, " + 
+            "open_seq = (SELECT max(open_seq) from polls)+1 " + 
+            "WHERE poll_id=?", poll.poll_id).then(() => {
+                return this.getPoll(poll.poll_id)
+            });
     };
-
+	this.closePoll = function(poll) {
+        return update(db, "UPDATE polls SET status=2 WHERE poll_id=?", 
+            poll.poll_id).then(() => {
+                return this.getPoll(poll.poll_id)
+        });
+    };
 	this.addPollResponse = function(resp) {
         return upsert(db, "poll_responses",  ["poll_id", "client_id"], ["response"],
             [resp.poll_id, resp.client_id, resp.value]).then((actions) => {
 				resp.id = actions.newID;
+                resp.action = actions.action;
 				return resp;
 			});
     };
