@@ -1,16 +1,18 @@
 import React from 'react';
-
+import { Link } from 'react-router-dom';  
 
 export default class Presenter extends React.Component {
     constructor(props) {
         super(props)
         this.socket = props.socket
         this.state = {snippets: [], polls: []};
-        this.socket.on("poll list", (polls) => this.refreshPolls(polls))
-        this.socket.on("new poll", (poll) => this.newPoll(poll))
-        this.socket.on("snippet list", (snips) => this.refreshSnippets(snips))
-        this.socket.on("new snippet", (snip) => this.newSnippet(snip))
-        this.socket.on("remove snippet", (snip) => this.removeSnippet(snip))
+        this.socket_events = {
+            "poll list": (polls) => this.refreshPolls(polls),
+            "new poll": (poll) => this.newPoll(poll),
+            "snippet list": (snips) => this.refreshSnippets(snips),
+            "new snippet": (snip) => this.newSnippet(snip),
+            "remove snippet": (snip) => this.removeSnippet(snip)
+        }
     }
     newPoll(poll) {
         this.setState(previousState => ({
@@ -34,8 +36,16 @@ export default class Presenter extends React.Component {
         this.setState({snippets: snips});
     }
     componentDidMount() {
+        Object.keys(this.socket_events).map((k)=> {
+            this.socket.on(k, this.socket_events[k])
+        })
         this.socket.emit("request poll list all")
         this.socket.emit("request snippet list")
+    }
+    componentWillUnmount() {
+        Object.keys(this.socket_events).map((k)=> {
+            this.socket.off(k, this.socket_events[k])
+        })
     }
     render() {
         return <div className="row">

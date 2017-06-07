@@ -6,13 +6,15 @@ export default class Student extends React.Component {
         super(props)
         this.state = {polls: [], snippets: [], clientID: -1};
         this.socket = props.socket
-        this.socket.on("you are", (client) => this.initClient(client))
-        this.socket.on("open poll", (poll) => this.newPoll(poll))
-        this.socket.on("close poll", (poll) => this.closePoll(poll))
-        this.socket.on("poll list", (polls) => this.refreshPolls(polls))
-        this.socket.on("snippet list", (snips) => this.refreshSnippets(snips))
-        this.socket.on("new snippet", (snip) => this.newSnippet(snip))
-        this.socket.on("remove snippet", (snip) => this.removeSnippet(snip))
+        this.socket_events = {
+            "you are": (client) => this.initClient(client),
+            "open poll": (poll) => this.newPoll(poll),
+            "close poll": (poll) => this.closePoll(poll),
+            "poll list": (polls) => this.refreshPolls(polls),
+            "snippet list": (snips) => this.refreshSnippets(snips),
+            "new snippet": (snip) => this.newSnippet(snip),
+            "remove snippet": (snip) => this.removeSnippet(snip)
+        }
     }
     initClient(client) {
         this.setState({clientID: client.id});
@@ -48,7 +50,15 @@ export default class Student extends React.Component {
         this.socket.emit("request snippet list")
     }
     componentDidMount() {
+        Object.keys(this.socket_events).map((k)=> {
+            this.socket.on(k, this.socket_events[k])
+        })
         this.refresh()
+    }
+    componentWillUnmount() {
+        Object.keys(this.socket_events).map((k)=> {
+            this.socket.off(k, this.socket_events[k])
+        })
     }
     render() {
         return <div className="row">
