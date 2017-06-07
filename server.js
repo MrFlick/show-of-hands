@@ -63,6 +63,16 @@ io.on('connection', function(socket) {
             io.emit("new poll response", resp);
         })
     });
+    socket.on("request poll detail", function(msg) {
+        data.getPoll(msg.poll_id).then((resp) => {
+            socket.emit("poll detail", resp)
+        });
+    });
+    socket.on("request poll responses list", function(msg) {
+        data.getPollResponses(msg).then((resp) => {
+            socket.emit("poll responses list", resp)
+        });
+    });
     socket.on("disconnect", function() {
         console.log("user disconnected");
     });

@@ -159,6 +159,10 @@ var DataStore = function(dbpath) {
 				return resp;
 			});
     };
+    this.getPollResponses = function(poll) {
+        let sql = "SELECT rowid, response FROM poll_responses WHERE poll_id=?"
+        return getAll(db, sql, poll.poll_id) 
+    }
 
     this.addSnippet = function(snip) {
         return insert(db, "INSERT INTO snippets (title, code) " +
