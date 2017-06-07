@@ -137,7 +137,7 @@ var DataStore = function(dbpath) {
 	};
 
 	this.getSnippet = function(snippet_id) {
-		return getOne(db, "SELECT * FROM snippets where snipped_id=?", snippet_id);
+		return getOne(db, "SELECT * FROM snippets where snippet_id=?", snippet_id);
 	};
 
 	this.close = function() {

@@ -8597,7 +8597,7 @@ var debug = __webpack_require__(16)('socket.io-parser');
 var Emitter = __webpack_require__(23);
 var hasBin = __webpack_require__(76);
 var binary = __webpack_require__(275);
-var isBuf = __webpack_require__(117);
+var isBuf = __webpack_require__(116);
 
 /**
  * Protocol version.
@@ -9091,7 +9091,7 @@ var Transport = __webpack_require__(44);
 var parseqs = __webpack_require__(36);
 var parser = __webpack_require__(24);
 var inherit = __webpack_require__(34);
-var yeast = __webpack_require__(118);
+var yeast = __webpack_require__(117);
 var debug = __webpack_require__(16)('engine.io-client:polling');
 
 /**
@@ -13188,111 +13188,11 @@ module.exports = getIteratorFn;
  * Module dependencies.
  */
 
-var url = __webpack_require__(274);
-var parser = __webpack_require__(69);
-var Manager = __webpack_require__(114);
-var debug = __webpack_require__(16)('socket.io-client');
-
-/**
- * Module exports.
- */
-
-module.exports = exports = lookup;
-
-/**
- * Managers cache.
- */
-
-var cache = exports.managers = {};
-
-/**
- * Looks up an existing `Manager` for multiplexing.
- * If the user summons:
- *
- *   `io('http://localhost/a');`
- *   `io('http://localhost/b');`
- *
- * We reuse the existing instance based on same scheme/port/host,
- * and we initialize sockets for each namespace.
- *
- * @api public
- */
-
-function lookup (uri, opts) {
-  if (typeof uri === 'object') {
-    opts = uri;
-    uri = undefined;
-  }
-
-  opts = opts || {};
-
-  var parsed = url(uri);
-  var source = parsed.source;
-  var id = parsed.id;
-  var path = parsed.path;
-  var sameNamespace = cache[id] && path in cache[id].nsps;
-  var newConnection = opts.forceNew || opts['force new connection'] ||
-                      false === opts.multiplex || sameNamespace;
-
-  var io;
-
-  if (newConnection) {
-    debug('ignoring socket cache for %s', source);
-    io = Manager(source, opts);
-  } else {
-    if (!cache[id]) {
-      debug('new io instance for %s', source);
-      cache[id] = Manager(source, opts);
-    }
-    io = cache[id];
-  }
-  if (parsed.query && !opts.query) {
-    opts.query = parsed.query;
-  }
-  return io.socket(parsed.path, opts);
-}
-
-/**
- * Protocol version.
- *
- * @api public
- */
-
-exports.protocol = parser.protocol;
-
-/**
- * `connect`.
- *
- * @param {String} uri
- * @api public
- */
-
-exports.connect = lookup;
-
-/**
- * Expose constructors for standalone build.
- *
- * @api public
- */
-
-exports.Manager = __webpack_require__(114);
-exports.Socket = __webpack_require__(116);
-
-
-/***/ }),
-/* 114 */
-/***/ (function(module, exports, __webpack_require__) {
-
-
-/**
- * Module dependencies.
- */
-
 var eio = __webpack_require__(130);
-var Socket = __webpack_require__(116);
+var Socket = __webpack_require__(115);
 var Emitter = __webpack_require__(23);
 var parser = __webpack_require__(69);
-var on = __webpack_require__(115);
+var on = __webpack_require__(114);
 var bind = __webpack_require__(70);
 var debug = __webpack_require__(16)('socket.io-client:manager');
 var indexOf = __webpack_require__(78);
@@ -13859,7 +13759,7 @@ Manager.prototype.onreconnect = function () {
 
 
 /***/ }),
-/* 115 */
+/* 114 */
 /***/ (function(module, exports) {
 
 
@@ -13889,7 +13789,7 @@ function on (obj, ev, fn) {
 
 
 /***/ }),
-/* 116 */
+/* 115 */
 /***/ (function(module, exports, __webpack_require__) {
 
 
@@ -13900,7 +13800,7 @@ function on (obj, ev, fn) {
 var parser = __webpack_require__(69);
 var Emitter = __webpack_require__(23);
 var toArray = __webpack_require__(276);
-var on = __webpack_require__(115);
+var on = __webpack_require__(114);
 var bind = __webpack_require__(70);
 var debug = __webpack_require__(16)('socket.io-client:socket');
 var parseqs = __webpack_require__(36);
@@ -14313,7 +14213,7 @@ Socket.prototype.compress = function (compress) {
 
 
 /***/ }),
-/* 117 */
+/* 116 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global) {
@@ -14333,7 +14233,7 @@ function isBuf(obj) {
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(8)))
 
 /***/ }),
-/* 118 */
+/* 117 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -14408,7 +14308,7 @@ module.exports = yeast;
 
 
 /***/ }),
-/* 119 */
+/* 118 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -14434,9 +14334,6 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var io = __webpack_require__(113);
-var socket = io();
-
 var Presenter = function (_React$Component) {
     _inherits(Presenter, _React$Component);
 
@@ -14445,49 +14342,50 @@ var Presenter = function (_React$Component) {
 
         var _this = _possibleConstructorReturn(this, (Presenter.__proto__ || Object.getPrototypeOf(Presenter)).call(this, props));
 
+        _this.socket = props.socket;
         _this.state = { prompts: [], snippets: [] };
-        socket.on("prompt list", function (prompts) {
+        _this.socket.on("prompt list", function (prompts) {
             return _this.refreshPrompts(prompts);
         });
         return _this;
     }
 
     _createClass(Presenter, [{
-        key: 'refreshPrompts',
+        key: "refreshPrompts",
         value: function refreshPrompts(prompts) {
             this.setState({ prompts: prompts });
             console.log(prompts);
         }
     }, {
-        key: 'componentDidMount',
+        key: "componentDidMount",
         value: function componentDidMount() {
-            socket.emit("request prompt list");
+            this.socket.emit("request prompt list");
         }
     }, {
-        key: 'render',
+        key: "render",
         value: function render() {
             return _react2.default.createElement(
-                'div',
-                { className: 'row' },
+                "div",
+                { className: "row" },
                 _react2.default.createElement(
-                    'div',
-                    { className: 'col-6' },
+                    "div",
+                    { className: "col-6" },
                     _react2.default.createElement(
-                        'h2',
+                        "h2",
                         null,
-                        'Prompts'
+                        "Prompts"
                     ),
-                    _react2.default.createElement(PromptList, { prompts: this.state.prompts })
+                    _react2.default.createElement(PromptList, { prompts: this.state.prompts, socket: this.socket })
                 ),
                 _react2.default.createElement(
-                    'div',
-                    { className: 'col-6' },
+                    "div",
+                    { className: "col-6" },
                     _react2.default.createElement(
-                        'h2',
+                        "h2",
                         null,
-                        'Snippets'
+                        "Snippets"
                     ),
-                    _react2.default.createElement(SnippetList, { snippets: this.state.snippets })
+                    _react2.default.createElement(SnippetList, { snippets: this.state.snippets, socket: this.socket })
                 )
             );
         }
@@ -14506,6 +14404,7 @@ var SnippetList = function (_React$Component2) {
 
         var _this2 = _possibleConstructorReturn(this, (SnippetList.__proto__ || Object.getPrototypeOf(SnippetList)).call(this, props));
 
+        _this2.socket = props.socket;
         _this2.state = { title: "", code: "" };
         _this2.handleInputChange = _this2.handleInputChange.bind(_this2);
         _this2.handleSubmit = _this2.handleSubmit.bind(_this2);
@@ -14513,7 +14412,7 @@ var SnippetList = function (_React$Component2) {
     }
 
     _createClass(SnippetList, [{
-        key: 'handleInputChange',
+        key: "handleInputChange",
         value: function handleInputChange(e) {
             var target = e.target;
             var value = target.value;
@@ -14522,28 +14421,28 @@ var SnippetList = function (_React$Component2) {
             this.setState(_defineProperty({}, name, value));
         }
     }, {
-        key: 'handleSubmit',
+        key: "handleSubmit",
         value: function handleSubmit(e) {
             e.preventDefault();
-            socket.emit("add snippet", this.state);
+            this.socket.emit("add snippet", this.state);
             this.setState({ title: "", code: "" });
         }
     }, {
-        key: 'render',
+        key: "render",
         value: function render() {
             return _react2.default.createElement(
-                'form',
+                "form",
                 { onSubmit: this.handleSubmit },
-                _react2.default.createElement('input', { name: 'title', value: this.state.title,
+                _react2.default.createElement("input", { name: "title", value: this.state.title,
                     onChange: this.handleInputChange,
                     style: { width: "100%" } }),
-                _react2.default.createElement('textarea', { name: 'code', value: this.state.code,
+                _react2.default.createElement("textarea", { name: "code", value: this.state.code,
                     onChange: this.handleInputChange,
                     style: { width: "100%", height: "200px" } }),
                 _react2.default.createElement(
-                    'button',
-                    { style: { width: "100%" }, className: 'btn btn-primary' },
-                    'Send'
+                    "button",
+                    { style: { width: "100%" }, className: "btn btn-primary" },
+                    "Send"
                 )
             );
         }
@@ -14553,31 +14452,33 @@ var SnippetList = function (_React$Component2) {
 }(_react2.default.Component);
 
 function PromptList(props) {
+    var socket = props.socket;
     return _react2.default.createElement(
-        'div',
+        "div",
         null,
         props.prompts.map(function (row) {
-            return _react2.default.createElement(Prompt, { key: row.prompt_id, prompt: row });
+            return _react2.default.createElement(Prompt, { key: row.prompt_id, prompt: row, socket: socket });
         })
     );
 }
 
 function Prompt(props) {
     var prompt = props.prompt;
+    var socket = props.socket;
     function sendPrompt(e) {
         e.preventDefault();
         socket.emit("add poll", prompt);
     }
     return _react2.default.createElement(
-        'div',
+        "div",
         null,
         _react2.default.createElement(
-            'form',
+            "form",
             { onSubmit: sendPrompt },
             _react2.default.createElement(
-                'button',
+                "button",
                 null,
-                'Send Poll'
+                "Send Poll"
             )
         ),
         prompt.title
@@ -14585,7 +14486,7 @@ function Prompt(props) {
 }
 
 /***/ }),
-/* 120 */
+/* 119 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -14615,9 +14516,6 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var io = __webpack_require__(113);
-var socket = io();
-
 var Student = function (_React$Component) {
     _inherits(Student, _React$Component);
 
@@ -14627,22 +14525,23 @@ var Student = function (_React$Component) {
         var _this = _possibleConstructorReturn(this, (Student.__proto__ || Object.getPrototypeOf(Student)).call(this, props));
 
         _this.state = { polls: [], snippets: [], clientID: -1 };
-        socket.on("you are", function (client) {
+        _this.socket = props.socket;
+        _this.socket.on("you are", function (client) {
             return _this.initClient(client);
         });
-        socket.on("new poll", function (poll) {
+        _this.socket.on("new poll", function (poll) {
             return _this.newPoll(poll);
         });
-        socket.on("close poll", function (poll) {
+        _this.socket.on("close poll", function (poll) {
             return _this.closePoll(poll);
         });
-        socket.on("poll list", function (polls) {
+        _this.socket.on("poll list", function (polls) {
             return _this.refreshPolls(polls);
         });
-        socket.on("new snippet", function (snip) {
+        _this.socket.on("new snippet", function (snip) {
             return _this.newSnippet(snip);
         });
-        socket.on("snippet list", function (snips) {
+        _this.socket.on("snippet list", function (snips) {
             return _this.refreshSnippets(snips);
         });
         return _this;
@@ -14687,8 +14586,8 @@ var Student = function (_React$Component) {
     }, {
         key: 'refresh',
         value: function refresh() {
-            socket.emit("request poll list");
-            socket.emit("request snippet list");
+            this.socket.emit("request poll list");
+            this.socket.emit("request snippet list");
         }
     }, {
         key: 'componentDidMount',
@@ -14709,7 +14608,7 @@ var Student = function (_React$Component) {
                         null,
                         'Questions'
                     ),
-                    _react2.default.createElement(PollList, { polls: this.state.polls, client: this.state.clientID })
+                    _react2.default.createElement(PollList, { polls: this.state.polls, socket: this.socket })
                 ),
                 _react2.default.createElement(
                     'div',
@@ -14760,11 +14659,12 @@ function Snippet(props) {
 }
 
 function PollList(props) {
+    var socket = props.socket;
     return _react2.default.createElement(
         'div',
         null,
         props.polls.map(function (row, i) {
-            return _react2.default.createElement(Poll, { key: row.poll_id, poll: row, client: props.client });
+            return _react2.default.createElement(Poll, { key: row.poll_id, poll: row, socket: socket });
         })
     );
 }
@@ -14781,7 +14681,7 @@ var Poll = function (_React$Component2) {
             answered: false,
             value: null
         };
-
+        _this2.socket = props.socket;
         _this2.handleChange = _this2.handleChange.bind(_this2);
         _this2.handleTextChange = _this2.handleTextChange.bind(_this2);
         _this2.handleChangeDebounce = (0, _debounce2.default)(_this2.handleChange, 500).bind(_this2);
@@ -14797,10 +14697,9 @@ var Poll = function (_React$Component2) {
             var poll = this.props.poll;
             var resp = {
                 poll_id: poll.poll_id,
-                client_id: this.props.client,
                 value: this.state.value
             };
-            socket.emit("poll response", resp);
+            this.socket.emit("poll response", resp);
             this.setState({ answered: true });
         }
     }, {
@@ -14875,7 +14774,7 @@ var Poll = function (_React$Component2) {
 }(_react2.default.Component);
 
 /***/ }),
-/* 121 */
+/* 120 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -14885,7 +14784,7 @@ module.exports = __webpack_require__(183);
 
 
 /***/ }),
-/* 122 */
+/* 121 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -14941,6 +14840,106 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
 
 
+
+
+/***/ }),
+/* 122 */
+/***/ (function(module, exports, __webpack_require__) {
+
+
+/**
+ * Module dependencies.
+ */
+
+var url = __webpack_require__(274);
+var parser = __webpack_require__(69);
+var Manager = __webpack_require__(113);
+var debug = __webpack_require__(16)('socket.io-client');
+
+/**
+ * Module exports.
+ */
+
+module.exports = exports = lookup;
+
+/**
+ * Managers cache.
+ */
+
+var cache = exports.managers = {};
+
+/**
+ * Looks up an existing `Manager` for multiplexing.
+ * If the user summons:
+ *
+ *   `io('http://localhost/a');`
+ *   `io('http://localhost/b');`
+ *
+ * We reuse the existing instance based on same scheme/port/host,
+ * and we initialize sockets for each namespace.
+ *
+ * @api public
+ */
+
+function lookup (uri, opts) {
+  if (typeof uri === 'object') {
+    opts = uri;
+    uri = undefined;
+  }
+
+  opts = opts || {};
+
+  var parsed = url(uri);
+  var source = parsed.source;
+  var id = parsed.id;
+  var path = parsed.path;
+  var sameNamespace = cache[id] && path in cache[id].nsps;
+  var newConnection = opts.forceNew || opts['force new connection'] ||
+                      false === opts.multiplex || sameNamespace;
+
+  var io;
+
+  if (newConnection) {
+    debug('ignoring socket cache for %s', source);
+    io = Manager(source, opts);
+  } else {
+    if (!cache[id]) {
+      debug('new io instance for %s', source);
+      cache[id] = Manager(source, opts);
+    }
+    io = cache[id];
+  }
+  if (parsed.query && !opts.query) {
+    opts.query = parsed.query;
+  }
+  return io.socket(parsed.path, opts);
+}
+
+/**
+ * Protocol version.
+ *
+ * @api public
+ */
+
+exports.protocol = parser.protocol;
+
+/**
+ * `connect`.
+ *
+ * @param {String} uri
+ * @api public
+ */
+
+exports.connect = lookup;
+
+/**
+ * Expose constructors for standalone build.
+ *
+ * @api public
+ */
+
+exports.Manager = __webpack_require__(113);
+exports.Socket = __webpack_require__(115);
 
 
 /***/ }),
@@ -15019,25 +15018,30 @@ module.exports = function(arraybuffer, start, end) {
 "use strict";
 
 
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
 var _react = __webpack_require__(7);
 
 var _react2 = _interopRequireDefault(_react);
 
-var _reactDom = __webpack_require__(121);
+var _reactDom = __webpack_require__(120);
 
 var _reactDom2 = _interopRequireDefault(_reactDom);
 
-var _reactRouterDom = __webpack_require__(122);
+var _reactRouterDom = __webpack_require__(121);
 
-var _student = __webpack_require__(120);
+var _student = __webpack_require__(119);
 
 var _student2 = _interopRequireDefault(_student);
 
-var _presenter = __webpack_require__(119);
+var _presenter = __webpack_require__(118);
 
 var _presenter2 = _interopRequireDefault(_presenter);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var io = __webpack_require__(122);
+var socket = io();
 
 _reactDom2.default.render(_react2.default.createElement(
     _reactRouterDom.BrowserRouter,
@@ -15045,8 +15049,12 @@ _reactDom2.default.render(_react2.default.createElement(
     _react2.default.createElement(
         _reactRouterDom.Switch,
         null,
-        _react2.default.createElement(_reactRouterDom.Route, { exact: true, path: '/', component: _student2.default }),
-        _react2.default.createElement(_reactRouterDom.Route, { path: '/podium', component: _presenter2.default })
+        _react2.default.createElement(_reactRouterDom.Route, { exact: true, path: '/', render: function render(props) {
+                return _react2.default.createElement(_student2.default, _extends({ socket: socket }, props));
+            } }),
+        _react2.default.createElement(_reactRouterDom.Route, { path: '/podium', render: function render(props) {
+                return _react2.default.createElement(_presenter2.default, _extends({ socket: socket }, props));
+            } })
     )
 ), document.getElementById('root'));
 
@@ -16970,7 +16978,7 @@ var Transport = __webpack_require__(44);
 var parser = __webpack_require__(24);
 var parseqs = __webpack_require__(36);
 var inherit = __webpack_require__(34);
-var yeast = __webpack_require__(118);
+var yeast = __webpack_require__(117);
 var debug = __webpack_require__(16)('engine.io-client:websocket');
 var BrowserWebSocket = global.WebSocket || global.MozWebSocket;
 var NodeWebSocket;
@@ -32580,7 +32588,7 @@ function url (uri, loc) {
  */
 
 var isArray = __webpack_require__(79);
-var isBuf = __webpack_require__(117);
+var isBuf = __webpack_require__(116);
 var toString = Object.prototype.toString;
 var withNativeBlob = typeof global.Blob === 'function' || toString.call(global.Blob) === '[object BlobConstructor]';
 var withNativeFile = typeof global.File === 'function' || toString.call(global.File) === '[object FileConstructor]';

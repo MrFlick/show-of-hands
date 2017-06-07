@@ -1,28 +1,28 @@
 import React from 'react';
-const io = require('socket.io-client');
-const socket = io();
+
 
 export default class Presenter extends React.Component {
     constructor(props) {
         super(props)
+        this.socket = props.socket
         this.state = {prompts: [], snippets: []};
-        socket.on("prompt list", (prompts) => this.refreshPrompts(prompts))
+        this.socket.on("prompt list", (prompts) => this.refreshPrompts(prompts))
     }
     refreshPrompts(prompts) {
         this.setState({prompts: prompts});
         console.log(prompts);
     }
     componentDidMount() {
-        socket.emit("request prompt list")
+        this.socket.emit("request prompt list")
     }
     render() {
         return <div className="row">
             <div className="col-6">
                 <h2>Prompts</h2>
-                <PromptList prompts={this.state.prompts} />
+                <PromptList prompts={this.state.prompts} socket={this.socket}/>
             </div><div className="col-6">
                 <h2>Snippets</h2>
-                <SnippetList snippets={this.state.snippets}/>
+                <SnippetList snippets={this.state.snippets} socket={this.socket}/>
             </div>
         </div>
     }
@@ -31,6 +31,7 @@ export default class Presenter extends React.Component {
 class SnippetList extends React.Component {
     constructor(props) {
         super(props);
+        this.socket = props.socket;
         this.state = {title: "", code: ""};
         this.handleInputChange = this.handleInputChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
@@ -45,7 +46,7 @@ class SnippetList extends React.Component {
     }
     handleSubmit(e) {
         e.preventDefault();
-        socket.emit("add snippet", this.state)
+        this.socket.emit("add snippet", this.state)
         this.setState({title: "", code: ""});
     }
 
@@ -63,13 +64,15 @@ class SnippetList extends React.Component {
 }
 
 function PromptList(props) {
+    var socket = props.socket;
     return <div>{props.prompts.map((row) => {
-          return <Prompt key={row.prompt_id} prompt={row}></Prompt>
+          return <Prompt key={row.prompt_id} prompt={row} socket={socket}></Prompt>
         })}</div>
 }
 
 function Prompt(props) {
     var prompt = props.prompt;
+    var socket = props.socket;
     function sendPrompt(e) {
         e.preventDefault();
         socket.emit("add poll", prompt);

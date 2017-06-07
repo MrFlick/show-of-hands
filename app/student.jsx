@@ -1,18 +1,17 @@
 import React from 'react';
 import debounce from 'lodash/debounce';
-const io = require('socket.io-client');
-const socket = io();
 
 export default class Student extends React.Component {
     constructor(props) {
         super(props)
         this.state = {polls: [], snippets: [], clientID: -1};
-        socket.on("you are", (client) => this.initClient(client))
-        socket.on("new poll", (poll) => this.newPoll(poll))
-        socket.on("close poll", (poll) => this.closePoll(poll))
-        socket.on("poll list", (polls) => this.refreshPolls(polls))
-        socket.on("new snippet", (snip) => this.newSnippet(snip))
-        socket.on("snippet list", (snips) => this.refreshSnippets(snips))
+        this.socket = props.socket
+        this.socket.on("you are", (client) => this.initClient(client))
+        this.socket.on("new poll", (poll) => this.newPoll(poll))
+        this.socket.on("close poll", (poll) => this.closePoll(poll))
+        this.socket.on("poll list", (polls) => this.refreshPolls(polls))
+        this.socket.on("new snippet", (snip) => this.newSnippet(snip))
+        this.socket.on("snippet list", (snips) => this.refreshSnippets(snips))
     }
     initClient(client) {
         this.setState({clientID: client.id});
@@ -37,8 +36,8 @@ export default class Student extends React.Component {
         }))
     }
     refresh() {
-        socket.emit("request poll list")
-        socket.emit("request snippet list")
+        this.socket.emit("request poll list")
+        this.socket.emit("request snippet list")
     }
     componentDidMount() {
         this.refresh()
@@ -47,7 +46,7 @@ export default class Student extends React.Component {
         return <div className="row">
             <div className="col-6">
                 <h2>Questions</h2>
-                <PollList polls={this.state.polls} client={this.state.clientID}/>
+                <PollList polls={this.state.polls} socket={this.socket}/>
             </div><div className="col-6">
                 <h2>Snippets</h2>
                 <SnippetList snippets={this.state.snippets}/>
@@ -72,8 +71,9 @@ function Snippet(props) {
 }
 
 function PollList(props) {
+    var socket = props.socket;
     return <div>{props.polls.map((row, i) => {
-        return <Poll key={row.poll_id} poll={row} client={props.client}></Poll>;
+        return <Poll key={row.poll_id} poll={row} socket={socket}></Poll>;
     })}</div>
 }
 
@@ -84,7 +84,7 @@ class Poll extends React.Component {
             answered: false,
             value: null
         }
-
+        this.socket = props.socket;
         this.handleChange = this.handleChange.bind(this);
         this.handleTextChange = this.handleTextChange.bind(this);
         this.handleChangeDebounce = debounce(this.handleChange, 500).bind(this);
@@ -96,10 +96,9 @@ class Poll extends React.Component {
         let poll = this.props.poll;
         let resp = {
             poll_id: poll.poll_id,
-            client_id: this.props.client,
             value: this.state.value
         };
-        socket.emit("poll response", resp);
+        this.socket.emit("poll response", resp);
         this.setState({answered: true});
     }
     handleTextChange(e) {
