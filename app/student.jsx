@@ -46,7 +46,6 @@ export default class Student extends React.Component {
     refresh() {
         this.socket.emit("request poll list")
         this.socket.emit("request snippet list")
-        console.log("request sent")
     }
     componentDidMount() {
         this.refresh()
@@ -96,7 +95,7 @@ class Poll extends React.Component {
         this.socket = props.socket;
         this.handleChange = this.handleChange.bind(this);
         this.handleTextChange = this.handleTextChange.bind(this);
-        this.handleChangeDebounce = debounce(this.handleChange, 500).bind(this);
+        this.handleChangeDebounce = debounce(this.handleChange.bind(this), 500);
         this.handleSubmit = this.handleSubmit.bind(this);
     }
     handleChange(e) {
@@ -116,6 +115,9 @@ class Poll extends React.Component {
     }
     handleSubmit(e) {
         e.preventDefault();
+    }
+    componentWillUnmount() {
+        this.handleChangeDebounce.cancel()
     }
     render() {
         let state = this.state;

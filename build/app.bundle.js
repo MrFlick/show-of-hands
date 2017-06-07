@@ -14946,7 +14946,7 @@ var Poll = function (_React$Component2) {
         _this2.socket = props.socket;
         _this2.handleChange = _this2.handleChange.bind(_this2);
         _this2.handleTextChange = _this2.handleTextChange.bind(_this2);
-        _this2.handleChangeDebounce = (0, _debounce2.default)(_this2.handleChange, 500).bind(_this2);
+        _this2.handleChangeDebounce = (0, _debounce2.default)(_this2.handleChange.bind(_this2), 500);
         _this2.handleSubmit = _this2.handleSubmit.bind(_this2);
         return _this2;
     }
@@ -14974,6 +14974,11 @@ var Poll = function (_React$Component2) {
         key: 'handleSubmit',
         value: function handleSubmit(e) {
             e.preventDefault();
+        }
+    }, {
+        key: 'componentWillUnmount',
+        value: function componentWillUnmount() {
+            this.handleChangeDebounce.cancel();
         }
     }, {
         key: 'render',
