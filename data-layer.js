@@ -167,8 +167,13 @@ var DataStore = function(dbpath) {
             })
     };
 
+    this.removeSnippet = function(snip) {
+        let sql = "DELETE FROM snippets WHERE snippet_id=?";
+        return update(db, sql, snip.snippet_id)
+    };
+
 	this.getSnippets = function() {
-		return getAll(db, "SELECT * FROM snippets");
+		return getAll(db, "SELECT * FROM snippets ORDER BY rowid DESC;");
 	};
 
 	this.getSnippet = function(snippet_id) {

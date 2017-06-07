@@ -52,6 +52,11 @@ io.on('connection', function(socket) {
             io.emit("new snippet", snip);
         })
     });
+    socket.on("remove snippet", function(msg) {
+        data.removeSnippet(msg).then(() => {
+            io.emit("remove snippet", msg);
+        })
+    });
     socket.on("poll response", function(msg) {
         msg.client_id = clientID;
         data.addPollResponse(msg).then((resp) => {

@@ -10,8 +10,9 @@ export default class Student extends React.Component {
         this.socket.on("open poll", (poll) => this.newPoll(poll))
         this.socket.on("close poll", (poll) => this.closePoll(poll))
         this.socket.on("poll list", (polls) => this.refreshPolls(polls))
-        this.socket.on("new snippet", (snip) => this.newSnippet(snip))
         this.socket.on("snippet list", (snips) => this.refreshSnippets(snips))
+        this.socket.on("new snippet", (snip) => this.newSnippet(snip))
+        this.socket.on("remove snippet", (snip) => this.removeSnippet(snip))
     }
     initClient(client) {
         this.setState({clientID: client.id});
@@ -34,8 +35,13 @@ export default class Student extends React.Component {
     }
     newSnippet(snip) {
         this.setState(previousState => ({
-            snippets: [...previousState.snippets, snip]
+            snippets: [snip, ...previousState.snippets]
         }))
+    }
+    removeSnippet(snip) {
+        this.setState({
+            snippets: this.state.snippets.filter((s)=>s.snippet_id != snip.snippet_id)
+        })
     }
     refresh() {
         this.socket.emit("request poll list")

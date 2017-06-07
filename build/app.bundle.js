@@ -14352,8 +14352,14 @@ var Presenter = function (_React$Component) {
         _this.socket.on("new poll", function (poll) {
             return _this.newPoll(poll);
         });
-        _this.socket.on("close poll", function (poll) {
-            return _this.closePoll(poll);
+        _this.socket.on("snippet list", function (snips) {
+            return _this.refreshSnippets(snips);
+        });
+        _this.socket.on("new snippet", function (snip) {
+            return _this.newSnippet(snip);
+        });
+        _this.socket.on("remove snippet", function (snip) {
+            return _this.removeSnippet(snip);
         });
         return _this;
     }
@@ -14368,17 +14374,38 @@ var Presenter = function (_React$Component) {
             });
         }
     }, {
-        key: "closePoll",
-        value: function closePoll(poll) {}
-    }, {
         key: "refreshPolls",
         value: function refreshPolls(polls) {
             this.setState({ polls: polls });
         }
     }, {
+        key: "newSnippet",
+        value: function newSnippet(snip) {
+            this.setState(function (previousState) {
+                return {
+                    snippets: [snip].concat(_toConsumableArray(previousState.snippets))
+                };
+            });
+        }
+    }, {
+        key: "removeSnippet",
+        value: function removeSnippet(snip) {
+            this.setState({
+                snippets: this.state.snippets.filter(function (s) {
+                    return s.snippet_id != snip.snippet_id;
+                })
+            });
+        }
+    }, {
+        key: "refreshSnippets",
+        value: function refreshSnippets(snips) {
+            this.setState({ snippets: snips });
+        }
+    }, {
         key: "componentDidMount",
         value: function componentDidMount() {
             this.socket.emit("request poll list all");
+            this.socket.emit("request snippet list");
         }
     }, {
         key: "render",
@@ -14415,13 +14442,26 @@ var Presenter = function (_React$Component) {
 
 exports.default = Presenter;
 
-var SnippetList = function (_React$Component2) {
-    _inherits(SnippetList, _React$Component2);
 
-    function SnippetList(props) {
-        _classCallCheck(this, SnippetList);
+function SnippetList(props) {
+    var socket = props.socket;
+    return _react2.default.createElement(
+        "div",
+        null,
+        _react2.default.createElement(NewSnippetForm, { socket: socket }),
+        props.snippets.map(function (row) {
+            return _react2.default.createElement(Snippet, { key: row.snippet_id, snippet: row, socket: socket });
+        })
+    );
+}
 
-        var _this2 = _possibleConstructorReturn(this, (SnippetList.__proto__ || Object.getPrototypeOf(SnippetList)).call(this, props));
+var NewSnippetForm = function (_React$Component2) {
+    _inherits(NewSnippetForm, _React$Component2);
+
+    function NewSnippetForm(props) {
+        _classCallCheck(this, NewSnippetForm);
+
+        var _this2 = _possibleConstructorReturn(this, (NewSnippetForm.__proto__ || Object.getPrototypeOf(NewSnippetForm)).call(this, props));
 
         _this2.socket = props.socket;
         _this2.state = { title: "", code: "" };
@@ -14430,7 +14470,7 @@ var SnippetList = function (_React$Component2) {
         return _this2;
     }
 
-    _createClass(SnippetList, [{
+    _createClass(NewSnippetForm, [{
         key: "handleInputChange",
         value: function handleInputChange(e) {
             var target = e.target;
@@ -14467,45 +14507,27 @@ var SnippetList = function (_React$Component2) {
         }
     }]);
 
-    return SnippetList;
+    return NewSnippetForm;
 }(_react2.default.Component);
 
-function PollList(props) {
-    var socket = props.socket;
-    return _react2.default.createElement(
-        "div",
-        null,
-        props.polls.map(function (row) {
-            return _react2.default.createElement(Poll, { key: row.poll_id, poll: row, socket: socket });
-        })
-    );
-}
+var Snippet = function (_React$Component3) {
+    _inherits(Snippet, _React$Component3);
 
-var Poll = function (_React$Component3) {
-    _inherits(Poll, _React$Component3);
+    function Snippet(props) {
+        _classCallCheck(this, Snippet);
 
-    function Poll(props) {
-        _classCallCheck(this, Poll);
+        var _this3 = _possibleConstructorReturn(this, (Snippet.__proto__ || Object.getPrototypeOf(Snippet)).call(this, props));
 
-        var _this3 = _possibleConstructorReturn(this, (Poll.__proto__ || Object.getPrototypeOf(Poll)).call(this, props));
-
-        var poll = props.poll;
-        _this3.state = poll;
+        var snippet = props.snippet;
+        _this3.state = snippet;
         _this3.socket = props.socket;
-        _this3.openPoll = _this3.openPoll.bind(_this3);
-        _this3.closePoll = _this3.closePoll.bind(_this3);
         _this3.handleSubmit = _this3.handleSubmit.bind(_this3);
-        _this3.handlePollUpdate = _this3.handlePollUpdate.bind(_this3);
-        _this3.handlePollResponse = _this3.handlePollResponse.bind(_this3);
-        _this3.socket_events = {
-            "open poll": _this3.handlePollUpdate,
-            "close poll": _this3.handlePollUpdate,
-            "new poll response": _this3.handlePollResponse
-        };
+        _this3.handleRemove = _this3.handleRemove.bind(_this3);
+        _this3.socket_events = {};
         return _this3;
     }
 
-    _createClass(Poll, [{
+    _createClass(Snippet, [{
         key: "componentDidMount",
         value: function componentDidMount() {
             var _this4 = this;
@@ -14521,6 +14543,108 @@ var Poll = function (_React$Component3) {
 
             Object.keys(this.socket_events).map(function (k) {
                 _this5.socket.off(k, _this5.socket_events[k]);
+            });
+        }
+    }, {
+        key: "handleRemove",
+        value: function handleRemove(e) {
+            this.socket.emit("remove snippet", this.state);
+        }
+    }, {
+        key: "handleSubmit",
+        value: function handleSubmit(e) {
+            e.preventDefault();
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            var name = "status" + this.state.poll_id;
+            var poll = this.state;
+            var button = _react2.default.createElement(
+                "button",
+                { onClick: this.handleRemove },
+                "Delete"
+            );
+            return _react2.default.createElement(
+                "div",
+                { className: "card" },
+                _react2.default.createElement(
+                    "form",
+                    { onSubmit: this.handleSubmit },
+                    _react2.default.createElement(
+                        "div",
+                        { className: "card-header" },
+                        this.state.title
+                    ),
+                    _react2.default.createElement(
+                        "div",
+                        { className: "card-block" },
+                        this.state.code
+                    ),
+                    _react2.default.createElement(
+                        "div",
+                        { className: "card-block" },
+                        button
+                    )
+                )
+            );
+        }
+    }]);
+
+    return Snippet;
+}(_react2.default.Component);
+
+function PollList(props) {
+    var socket = props.socket;
+    return _react2.default.createElement(
+        "div",
+        null,
+        props.polls.map(function (row) {
+            return _react2.default.createElement(Poll, { key: row.poll_id, poll: row, socket: socket });
+        })
+    );
+}
+
+var Poll = function (_React$Component4) {
+    _inherits(Poll, _React$Component4);
+
+    function Poll(props) {
+        _classCallCheck(this, Poll);
+
+        var _this6 = _possibleConstructorReturn(this, (Poll.__proto__ || Object.getPrototypeOf(Poll)).call(this, props));
+
+        var poll = props.poll;
+        _this6.state = poll;
+        _this6.socket = props.socket;
+        _this6.openPoll = _this6.openPoll.bind(_this6);
+        _this6.closePoll = _this6.closePoll.bind(_this6);
+        _this6.handleSubmit = _this6.handleSubmit.bind(_this6);
+        _this6.handlePollUpdate = _this6.handlePollUpdate.bind(_this6);
+        _this6.handlePollResponse = _this6.handlePollResponse.bind(_this6);
+        _this6.socket_events = {
+            "open poll": _this6.handlePollUpdate,
+            "close poll": _this6.handlePollUpdate,
+            "new poll response": _this6.handlePollResponse
+        };
+        return _this6;
+    }
+
+    _createClass(Poll, [{
+        key: "componentDidMount",
+        value: function componentDidMount() {
+            var _this7 = this;
+
+            Object.keys(this.socket_events).map(function (k) {
+                _this7.socket.on(k, _this7.socket_events[k]);
+            });
+        }
+    }, {
+        key: "componentWillUnmount",
+        value: function componentWillUnmount() {
+            var _this8 = this;
+
+            Object.keys(this.socket_events).map(function (k) {
+                _this8.socket.off(k, _this8.socket_events[k]);
             });
         }
     }, {
@@ -14541,7 +14665,6 @@ var Poll = function (_React$Component3) {
         key: "handleSubmit",
         value: function handleSubmit(e) {
             e.preventDefault();
-            //socket.emit("close poll", poll);
         }
     }, {
         key: "openPoll",
@@ -14658,11 +14781,14 @@ var Student = function (_React$Component) {
         _this.socket.on("poll list", function (polls) {
             return _this.refreshPolls(polls);
         });
+        _this.socket.on("snippet list", function (snips) {
+            return _this.refreshSnippets(snips);
+        });
         _this.socket.on("new snippet", function (snip) {
             return _this.newSnippet(snip);
         });
-        _this.socket.on("snippet list", function (snips) {
-            return _this.refreshSnippets(snips);
+        _this.socket.on("remove snippet", function (snip) {
+            return _this.removeSnippet(snip);
         });
         return _this;
     }
@@ -14705,8 +14831,17 @@ var Student = function (_React$Component) {
         value: function newSnippet(snip) {
             this.setState(function (previousState) {
                 return {
-                    snippets: [].concat(_toConsumableArray(previousState.snippets), [snip])
+                    snippets: [snip].concat(_toConsumableArray(previousState.snippets))
                 };
+            });
+        }
+    }, {
+        key: 'removeSnippet',
+        value: function removeSnippet(snip) {
+            this.setState({
+                snippets: this.state.snippets.filter(function (s) {
+                    return s.snippet_id != snip.snippet_id;
+                })
             });
         }
     }, {

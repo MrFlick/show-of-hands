@@ -8,21 +8,34 @@ export default class Presenter extends React.Component {
         this.state = {snippets: [], polls: []};
         this.socket.on("poll list", (polls) => this.refreshPolls(polls))
         this.socket.on("new poll", (poll) => this.newPoll(poll))
-        this.socket.on("close poll", (poll) => this.closePoll(poll))
+        this.socket.on("snippet list", (snips) => this.refreshSnippets(snips))
+        this.socket.on("new snippet", (snip) => this.newSnippet(snip))
+        this.socket.on("remove snippet", (snip) => this.removeSnippet(snip))
     }
     newPoll(poll) {
         this.setState(previousState => ({
             polls: [...previousState.polls, poll]
         }))
     }
-    closePoll(poll) {
-
-    }
     refreshPolls(polls) {
         this.setState({polls: polls});
     }
+    newSnippet(snip) {
+        this.setState(previousState => ({
+            snippets: [snip, ...previousState.snippets]
+        }))
+    }
+    removeSnippet(snip) {
+        this.setState({
+            snippets: this.state.snippets.filter((s)=>s.snippet_id != snip.snippet_id)
+        })
+    }
+    refreshSnippets(snips) {
+        this.setState({snippets: snips});
+    }
     componentDidMount() {
         this.socket.emit("request poll list all")
+        this.socket.emit("request snippet list")
     }
     render() {
         return <div className="row">
@@ -37,7 +50,16 @@ export default class Presenter extends React.Component {
     }
 }
 
-class SnippetList extends React.Component {
+function SnippetList(props) {
+    let socket = props.socket;
+    return <div><NewSnippetForm socket={socket}/>
+        {props.snippets.map((row) => {
+          return <Snippet key={row.snippet_id} snippet={row} socket={socket} />
+        })}
+    </div>
+}
+
+class NewSnippetForm extends React.Component {
     constructor(props) {
         super(props);
         this.socket = props.socket;
@@ -72,6 +94,44 @@ class SnippetList extends React.Component {
     }
 }
 
+class Snippet extends React.Component {
+    constructor(props) {
+        super(props);
+        var snippet = props.snippet;
+        this.state = snippet
+        this.socket = props.socket;
+        this.handleSubmit = this.handleSubmit.bind(this);
+        this.handleRemove = this.handleRemove.bind(this);
+        this.socket_events = {}
+    }
+    componentDidMount() {
+        Object.keys(this.socket_events).map((k)=> {
+            this.socket.on(k, this.socket_events[k])
+        })
+    }
+    componentWillUnmount() {
+        Object.keys(this.socket_events).map((k)=> {
+            this.socket.off(k, this.socket_events[k])
+        })
+    }
+    handleRemove(e) {
+        this.socket.emit("remove snippet", this.state) 
+    }
+    handleSubmit(e) {
+        e.preventDefault();
+    }
+    render() {
+        var name = "status" + this.state.poll_id;
+        let poll = this.state;
+        let button = <button onClick={this.handleRemove}>Delete</button>
+        return <div className="card"><form onSubmit={this.handleSubmit}>
+            <div className="card-header">{this.state.title}</div>
+            <div className="card-block">{this.state.code}</div>
+            <div className="card-block">{button}</div>
+            </form></div>; 
+    }    
+    
+}
 function PollList(props) {
     var socket = props.socket;
     return <div>{props.polls.map((row) => {
@@ -118,7 +178,6 @@ class Poll extends React.Component {
     }
     handleSubmit(e) {
         e.preventDefault();
-        //socket.emit("close poll", poll);
     }
     openPoll() {
         this.socket.emit("open poll", this.state);
