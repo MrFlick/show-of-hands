@@ -109,15 +109,15 @@ class Poll extends React.Component {
         this.handleSubmit = this.handleSubmit.bind(this);
     }
     handleChange(e) {
-        console.log("change");
-        this.setState({value: e.target.value});
-        let poll = this.props.poll;
-        let resp = {
-            poll_id: poll.poll_id,
-            value: this.state.value
-        };
-        this.socket.emit("poll response", resp);
-        this.setState({answered: true});
+        this.setState({value: e.target.value}, () => {
+            let poll = this.props.poll;
+            let resp = {
+                poll_id: poll.poll_id,
+                value: this.state.value
+            };
+            this.socket.emit("poll response", resp);
+            this.setState({answered: true});
+        });
     }
     handleTextChange(e) {
         e.persist()
