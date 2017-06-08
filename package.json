@@ -4,9 +4,11 @@
   "description": "App to get interactive feedback during a lecture",
   "scripts": {
     "start": "node server",
-    "build": "webpack --display-error-details"
+    "build": "webpack --display-error-details",
+    "redb": "rm db/data.sqlite3 && sqlite3 db/data.sqlite3 < db-schema.sql && sqlite3 db/data.sqlite3 < db-sample.sql"
   },
   "dependencies": {
+    "classnames": "^2.2.5",
     "express": "^4.15.2",
     "react": "^15.5.4",
     "react-dom": "^15.5.4",

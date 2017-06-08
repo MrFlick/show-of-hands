@@ -1,5 +1,7 @@
 import React from 'react';
-import { Link } from 'react-router-dom';  
+import { Link } from 'react-router-dom'; 
+
+var classNames = require('classnames');
 
 export default class Presenter extends React.Component {
     constructor(props) {
@@ -207,7 +209,7 @@ class Poll extends React.Component {
             button = <button onClick={this.openPoll}>Re-open</button>
         }
         return <div className="card"><form onSubmit={this.handleSubmit}>
-            <div className="card-header">{this.state.title} ({this.state.response_count})</div>
+            <div className={classNames("card-header", {"open-poll": this.state.status==1})}>{this.state.title} ({this.state.response_count})</div>
             <div className="card-block"><p>{button} <Link to={`/results/${poll.poll_id}`}>results</Link></p></div>
             </form></div>; 
     }    
