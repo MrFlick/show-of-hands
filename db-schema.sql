@@ -12,7 +12,7 @@ CREATE TABLE polls (
 
 CREATE TABLE poll_responses (
 	poll_id INTEGER NOT NULL,
-	client_id INTEGER,
+	client_id TEXT,
 	response TEXT,
 	PRIMARY KEY (poll_id, client_id)
 );

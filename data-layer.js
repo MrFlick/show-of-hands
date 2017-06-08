@@ -161,7 +161,8 @@ var DataStore = function(dbpath) {
 	this.addPollResponse = function(resp) {
         return upsert(db, "poll_responses",  ["poll_id", "client_id"], ["response"],
             [resp.poll_id, resp.client_id, resp.value]).then((actions) => {
-				resp.id = actions.newID;
+				resp.rowid = actions.newID;
+                resp.response = resp.value;
                 resp.action = actions.action;
 				return resp;
 			});

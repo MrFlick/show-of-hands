@@ -15029,6 +15029,8 @@ var _reactRouterDom = __webpack_require__(44);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
@@ -15050,6 +15052,9 @@ var Results = function (_React$Component) {
         };
         _this.socket = props.socket;
         _this.socket_events = {
+            "new poll response": function newPollResponse(resp) {
+                return _this.newResponse(resp);
+            },
             "poll responses list": function pollResponsesList(resp) {
                 return _this.refreshResponses(resp);
             },
@@ -15061,6 +15066,34 @@ var Results = function (_React$Component) {
     }
 
     _createClass(Results, [{
+        key: 'newResponse',
+        value: function newResponse(resp) {
+            if (resp.poll_id == this.state.poll_id) {
+                var r = { rowid: resp.rowid, response: resp.value };
+                if (resp.action == "insert") {
+                    this.setState(function (previousState) {
+                        return {
+                            responses: [].concat(_toConsumableArray(previousState.responses), [r])
+                        };
+                    });
+                } else if (resp.action == "update") {
+                    this.setState(function (previousState) {
+                        return {
+                            responses: previousState.responses.map(function (x) {
+                                if (r.rowid == x.rowid) {
+                                    return r;
+                                } else {
+                                    return x;
+                                }
+                            })
+                        };
+                    });
+                } else {
+                    console.log(resp.action);
+                }
+            }
+        }
+    }, {
         key: 'refreshPoll',
         value: function refreshPoll(resp) {
             this.setState(resp);
@@ -15168,9 +15201,7 @@ var ChoiceBarPlot = function (_React$Component2) {
 
     _createClass(ChoiceBarPlot, [{
         key: 'summarizeStats',
-        value: function summarizeStats() {
-            var resps = this.props.responses;
-            var poll = this.props.poll;
+        value: function summarizeStats(resps, poll) {
             var n = resps.length;
             var counts = count(resps, function (x) {
                 return x.response;
@@ -15183,7 +15214,7 @@ var ChoiceBarPlot = function (_React$Component2) {
     }, {
         key: 'render',
         value: function render() {
-            var stats = this.summarizeStats();
+            var stats = this.summarizeStats(this.props.responses, this.props.poll);
             return _react2.default.createElement(
                 'dl',
                 null,
@@ -15228,7 +15259,6 @@ var Histogram = function (_React$Component3) {
             var _this6 = this;
 
             var resps = this.props.responses;
-            console.log(resps);
             var vals = resps.map(function (x) {
                 return x.response;
             }).map(parseFloat).filter(function (x) {
@@ -15254,7 +15284,6 @@ var Histogram = function (_React$Component3) {
             var r = function r(i) {
                 return Math.round((min + i * (max - min) / _this6.state.bins) * 100) / 100;
             };
-            console.log("bins", bins);
             var maxBins = Math.max.apply(null, bins.filter(function (x) {
                 return !isNaN(x);
             }));
@@ -15267,7 +15296,6 @@ var Histogram = function (_React$Component3) {
         key: 'render',
         value: function render() {
             var stats = this.summarizeStats();
-            console.log(stats);
             if (stats.empty) {
                 return _react2.default.createElement(
                     'p',

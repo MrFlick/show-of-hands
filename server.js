@@ -38,16 +38,9 @@ var getClientIDBySocket = (function() {
 })();
 
 var getClientIDByGUID = (function() {
-    var clients = new Map();
     function helloParse(msg) {
         var guid = msg.client_id;
-        if (clients.has(guid)) {
-            clientID = clients.get(guid);
-        } else {
-            clientID = clients.size+1;
-            clients.set(guid, clientID);
-        }
-        return clientID;
+        return guid;
     }
     return function(socket, cb) {
         socket.once("hello", function(msg) {

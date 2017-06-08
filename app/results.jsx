@@ -11,8 +11,31 @@ export default class Results extends React.Component {
         }
         this.socket = props.socket
         this.socket_events = {
+            "new poll response": (resp) => this.newResponse(resp),
             "poll responses list": (resp) => this.refreshResponses(resp),
             "poll detail": (resp) => this.refreshPoll(resp)
+        }
+    }
+    newResponse(resp) {
+        if (resp.poll_id == this.state.poll_id) {
+            var r = {rowid: resp.rowid, response: resp.value}
+            if (resp.action == "insert") {
+                this.setState(previousState => ({
+                    responses: [...previousState.responses, r]
+                }))
+            } else if (resp.action == "update") {
+                this.setState(previousState => ({
+                    responses: previousState.responses.map(function(x) {
+                        if (r.rowid == x.rowid) {
+                            return r;
+                        } else {
+                            return x;
+                        }
+                    })
+                }))
+            } else {
+                console.log(resp.action);
+            }
         }
     }
     refreshPoll(resp) {
@@ -68,9 +91,7 @@ class ChoiceBarPlot extends React.Component {
         super(props)
         this.summarizeStats = this.summarizeStats.bind(this);
     }
-    summarizeStats() {
-        var resps = this.props.responses;
-        var poll = this.props.poll;
+    summarizeStats(resps, poll) {
         var n = resps.length;
         var counts = count(resps, (x) => {return x.response} )
         var keys = (poll.options && poll.options.values) || Object.keys(counts)
@@ -79,7 +100,7 @@ class ChoiceBarPlot extends React.Component {
         })
     }
     render() {
-        let stats = this.summarizeStats();
+        let stats = this.summarizeStats(this.props.responses, this.props.poll);
         return <dl>{stats.map((x) => {
             return <dd className="percentage" key={x.value}><span className="text">{x.value} ({x.n})</span>
             <span className="bar" style={{width: (x.p*100) + "%"}}></span></dd>
@@ -95,7 +116,6 @@ class Histogram extends React.Component {
     }
     summarizeStats() {
         var resps = this.props.responses;
-        console.log(resps)
         var vals = resps.map((x) => x.response).map(parseFloat).filter((x) => !isNaN(x)).sort();
         var min = 0;
         var max = 0;
@@ -113,14 +133,12 @@ class Histogram extends React.Component {
             empty = false;
         }
         var r = (i) => {return Math.round((min+i*(max-min)/this.state.bins)*100)/100}
-        console.log("bins", bins)
         var maxBins = Math.max.apply(null, bins.filter((x)=>!isNaN(x)));
         return {min: min, max: max, mean: mean, n: vals.length, 
             bins:bins.map((x, i)=>{return {n:x, p:x/maxBins, r:[r(i)+"-"+r(i+1)]}}), empty: empty}
     }
     render() {
         let stats = this.summarizeStats();
-        console.log(stats)
         if (stats.empty) {
             return <p>No responses</p>
         } else {
