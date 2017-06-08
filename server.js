@@ -57,6 +57,11 @@ io.on('connection', function(socket) {
             io.emit("close poll", poll);
         })
     });
+    socket.on("remove poll", function(msg) {
+        data.deletePoll(msg).then(() => {
+            io.emit("remove poll", msg);
+        })
+    });
     socket.on("add snippet", function(msg) {
         data.addSnippet(msg).then((snip) => {
             io.emit("new snippet", snip);
@@ -73,7 +78,7 @@ io.on('connection', function(socket) {
         })
     });
     socket.on("remove snippet", function(msg) {
-        data.removeSnippet(msg).then(() => {
+        data.deleteSnippet(msg).then(() => {
             io.emit("remove snippet", msg);
         })
     });

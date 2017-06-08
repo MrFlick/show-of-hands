@@ -10,10 +10,12 @@ export default class Student extends React.Component {
             "you are": (client) => this.initClient(client),
             "open poll": (poll) => this.newPoll(poll),
             "close poll": (poll) => this.closePoll(poll),
+            "remove poll": (poll) => this.closePoll(poll),
             "poll list": (polls) => this.refreshPolls(polls),
             "snippet list": (snips) => this.refreshSnippets(snips),
             "open snippet": (snip) => this.openSnippet(snip),
-            "close snippet": (snip) => this.closeSnippet(snip)
+            "close snippet": (snip) => this.closeSnippet(snip),
+            "remove snippet": (snip) => this.closeSnippet(snip)
         }
     }
     initClient(client) {

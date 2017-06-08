@@ -109,7 +109,11 @@ var DataStore = function(dbpath) {
 		return getAll(db, sql).then((polls) => {
 			return polls.map((poll) => {
 				if (poll.options) {
-					poll.options = JSON.parse(poll.options)
+					try {
+						poll.options = JSON.parse(poll.options)
+					} catch(e) {
+						poll.options = null
+					}
 				}
 				return poll;
 			});
@@ -124,16 +128,19 @@ var DataStore = function(dbpath) {
             "WHERE poll_id = ?"
         return getOne(db, sql, poll_id).then((poll) => {
 			if (poll.options) {
-				poll.options = JSON.parse(poll.options)
+				try {
+					poll.options = JSON.parse(poll.options)
+				} catch(e) {
+					poll.options = null
+				}
 			}
 			return poll;
 		});
 	};
 
-    //TODO: remove prompt
-    this.addPoll = function(prompt) {
-        return insert(db, "INSERT INTO polls (prompt_id, title, type, options) " +
-            "values (?, ?, ?, ?)", prompt.prompt_id, prompt.title, prompt.type, prompt.options).then((result) => {
+    this.addPoll = function(poll) {
+        return insert(db, "INSERT INTO polls (title, type, options) " +
+            "values (?, ?, ?)", poll.title, poll.type, poll.options).then((result) => {
                 return this.getPoll(result.newID)
             })
     };
@@ -159,6 +166,12 @@ var DataStore = function(dbpath) {
 				return resp;
 			});
     };
+
+    this.deletePoll = function(poll) {
+        let sql = "DELETE FROM polls WHERE poll_id=?";
+        return update(db, sql, poll.poll_id)
+    };
+
     this.getPollResponses = function(poll) {
         let sql = "SELECT rowid, response FROM poll_responses WHERE poll_id=?"
         return getAll(db, sql, poll.poll_id) 
@@ -180,6 +193,10 @@ var DataStore = function(dbpath) {
 		return getAll(db, sql);
 	};
 
+	this.getSnippet = function(snippet_id) {
+		return getOne(db, "SELECT * FROM snippets where snippet_id=?", snippet_id);
+	};
+
 	this.openSnippet = function(snip) {
         return update(db, "UPDATE snippets SET status=1, " + 
             "open_seq = (SELECT max(open_seq) from snippets)+1 " + 
@@ -195,9 +212,10 @@ var DataStore = function(dbpath) {
         });
     };
 
-	this.getSnippet = function(snippet_id) {
-		return getOne(db, "SELECT * FROM snippets where snippet_id=?", snippet_id);
-	};
+    this.deleteSnippet = function(snip) {
+        let sql = "DELETE FROM snippets WHERE snippet_id=?";
+        return update(db, sql, snip.snippet_id)
+    };
 
 	this.close = function() {
 		db.close();

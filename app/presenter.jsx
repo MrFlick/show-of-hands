@@ -11,6 +11,7 @@ export default class Presenter extends React.Component {
         this.socket_events = {
             "poll list": (polls) => this.refreshPolls(polls),
             "new poll": (poll) => this.newPoll(poll),
+            "remove poll": (poll) => this.removePoll(poll),
             "snippet list": (snips) => this.refreshSnippets(snips),
             "new snippet": (snip) => this.newSnippet(snip),
             "remove snippet": (snip) => this.removeSnippet(snip)
@@ -20,6 +21,11 @@ export default class Presenter extends React.Component {
         this.setState(previousState => ({
             polls: [...previousState.polls, poll]
         }))
+    }
+    removePoll(poll) {
+        this.setState({
+            polls: this.state.polls.filter((p)=>p.poll_id != poll.poll_id)
+        })
     }
     refreshPolls(polls) {
         this.setState({polls: polls});
@@ -113,9 +119,10 @@ class Snippet extends React.Component {
         this.state = snippet
         this.socket = props.socket;
         this.handleSubmit = this.handleSubmit.bind(this);
-        this.handleRemove = this.handleRemove.bind(this);
+        
         this.openSnippet = this.openSnippet.bind(this);
         this.closeSnippet = this.closeSnippet.bind(this);
+        this.removeSnippet = this.removeSnippet.bind(this);
         this.handleSnippetUpdate = this.handleSnippetUpdate.bind(this);
         this.socket_events = {
             "open snippet": this.handleSnippetUpdate,
@@ -137,14 +144,14 @@ class Snippet extends React.Component {
             this.setState(snip)
         };
     }
-    handleRemove(e) {
-        this.socket.emit("remove snippet", this.state) 
-    }
     openSnippet(e) {
          this.socket.emit("open snippet", this.state);
     }
     closeSnippet(e) {
         this.socket.emit("close snippet", this.state);
+    }
+    removeSnippet(e) {
+        this.socket.emit("remove snippet", this.state) 
     }
     handleSubmit(e) {
         e.preventDefault();
@@ -162,7 +169,7 @@ class Snippet extends React.Component {
         return <div className="card"><form onSubmit={this.handleSubmit}>
             <div className={classNames("card-header", {"open-poll": this.state.status==1})}>{this.state.title}</div>
             <div className="card-block">{this.state.code}</div>
-            <div className="card-block">{button}</div>
+            <div className="card-block">{button} <button onClick={this.removeSnippet}>Delete</button></div>
             </form></div>; 
     }    
     
@@ -170,9 +177,52 @@ class Snippet extends React.Component {
 
 function PollList(props) {
     var socket = props.socket;
-    return <div>{props.polls.map((row) => {
+    return <div><NewPollForm socket={socket}/>{props.polls.map((row) => {
           return <Poll key={row.poll_id} poll={row} socket={socket}></Poll>
         })}</div>
+}
+
+class NewPollForm extends React.Component {
+    constructor(props) {
+        super(props);
+        this.socket = props.socket;
+        this.state = {title: "untitled", type: "text", options:""};
+        this.handleInputChange = this.handleInputChange.bind(this);
+        this.handleSubmit = this.handleSubmit.bind(this);
+    }
+
+    handleInputChange(e) {
+        const target = e.target;
+        const value = target.value;
+        const name = target.name;
+
+        this.setState({[name]: value});
+    }
+    handleSubmit(e) {
+        e.preventDefault();
+        this.socket.emit("add poll", this.state)
+        this.setState({title: "untitled", type: "text", options:""});
+    }
+
+    render() {
+        return <form onSubmit={this.handleSubmit}>
+        <input name="title" value={this.state.title} 
+            onChange={this.handleInputChange}
+            style={{width: "100%"}} />
+        <div>
+            <label><input type="radio" name="type" value="text" onChange={this.handleInputChange} 
+                checked={this.state.type=="text"}/>text </label> 
+            <label><input type="radio" name="type" value="number" onChange={this.handleInputChange} 
+                checked={this.state.type=="number"}/>number </label> 
+            <label><input type="radio" name="type" value="multiple_choice" onChange={this.handleInputChange} 
+                checked={this.state.type=="multiple_choice"}/>choice</label>
+        </div>
+        <textarea name="options" value={this.state.options} 
+            onChange={this.handleInputChange}
+            style={{width: "100%", height: "100px"}} />
+        <button style={{width: "100%"}} className="btn btn-primary">Send</button>
+        </form>;
+    }
 }
 
 class Poll extends React.Component {
@@ -183,6 +233,7 @@ class Poll extends React.Component {
         this.socket = props.socket;
         this.openPoll = this.openPoll.bind(this);
         this.closePoll = this.closePoll.bind(this);
+        this.removePoll = this.removePoll.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
         this.handlePollUpdate = this.handlePollUpdate.bind(this);
         this.handlePollResponse = this.handlePollResponse.bind(this);
@@ -218,6 +269,9 @@ class Poll extends React.Component {
     closePoll() {
         this.socket.emit("close poll", this.state);
     }
+    removePoll() {
+        this.socket.emit("remove poll", this.state);
+    }
     handleSubmit(e) {
         e.preventDefault();
     }
@@ -233,7 +287,8 @@ class Poll extends React.Component {
         }
         return <div className="card"><form onSubmit={this.handleSubmit}>
             <div className={classNames("card-header", {"open-poll": this.state.status==1})}>{this.state.title} ({this.state.response_count})</div>
-            <div className="card-block"><p>{button} <Link to={`/results/${poll.poll_id}`}>results</Link></p></div>
+            <div className="card-block"><p>{button} <button onClick={this.removePoll}>Delete</button>
+                <Link to={`/results/${poll.poll_id}`}>results</Link></p></div>
             </form></div>; 
     }    
     
