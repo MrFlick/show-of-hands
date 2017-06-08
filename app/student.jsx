@@ -150,6 +150,8 @@ class Poll extends React.Component {
                     return <button className={bclass(x)} onClick={this.handleChange} value={x} key={x}>{x}</button>
                 });
             } 
+        } else if (poll.type=="number") { 
+            input = <div><input types="text" style={{width: "100%"}} placeholder="Please enter a number" onChange={this.handleTextChange}/></div>
         } else {
             input = <div><textarea style={{width: "100%", height: "100px"}} onChange={this.handleTextChange}/></div>;
         }

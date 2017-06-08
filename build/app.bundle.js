@@ -14907,6 +14907,8 @@ var Results = function (_React$Component) {
                 drawcomp = _react2.default.createElement(ChoiceBarPlot, { poll: this.state, responses: this.state.responses });
             } else if (this.state.type == "text") {
                 drawcomp = _react2.default.createElement(ResponseDump, { poll: this.state, responses: this.state.responses });
+            } else if (this.state.type == "number") {
+                drawcomp = _react2.default.createElement(Histogram, { poll: this.state, responses: this.state.responses });
             } else {
                 drawcomp = _react2.default.createElement(
                     'div',
@@ -15014,6 +15016,108 @@ var ChoiceBarPlot = function (_React$Component2) {
     }]);
 
     return ChoiceBarPlot;
+}(_react2.default.Component);
+
+var Histogram = function (_React$Component3) {
+    _inherits(Histogram, _React$Component3);
+
+    function Histogram(props) {
+        _classCallCheck(this, Histogram);
+
+        var _this5 = _possibleConstructorReturn(this, (Histogram.__proto__ || Object.getPrototypeOf(Histogram)).call(this, props));
+
+        _this5.state = { bins: 7 };
+        _this5.summarizeStats = _this5.summarizeStats.bind(_this5);
+        return _this5;
+    }
+
+    _createClass(Histogram, [{
+        key: 'summarizeStats',
+        value: function summarizeStats() {
+            var _this6 = this;
+
+            var resps = this.props.responses;
+            console.log(resps);
+            var vals = resps.map(function (x) {
+                return x.response;
+            }).map(parseFloat).filter(function (x) {
+                return !isNaN(x);
+            }).sort();
+            var min = 0;
+            var max = 0;
+            var mean = 0;
+            var bins = new Array(this.state.bins + 1).fill(0);
+            var empty = true;
+            if (vals.length) {
+                min = Math.min.apply(null, vals);
+                max = Math.max.apply(null, vals);
+                mean = vals.reduce(function (a, b) {
+                    return a + b;
+                }) / vals.length;
+                vals.forEach(function (x) {
+                    var b = Math.floor((x - min) / (max - min) * _this6.state.bins);
+                    bins[b] = (bins[b] || 0) + 1;
+                });
+                empty = false;
+            }
+            var r = function r(i) {
+                return Math.round((min + i * (max - min) / _this6.state.bins) * 100) / 100;
+            };
+            console.log("bins", bins);
+            var maxBins = Math.max.apply(null, bins.filter(function (x) {
+                return !isNaN(x);
+            }));
+            return { min: min, max: max, mean: mean, n: vals.length,
+                bins: bins.map(function (x, i) {
+                    return { n: x, p: x / maxBins, r: [r(i) + "-" + r(i + 1)] };
+                }), empty: empty };
+        }
+    }, {
+        key: 'render',
+        value: function render() {
+            var stats = this.summarizeStats();
+            console.log(stats);
+            if (stats.empty) {
+                return _react2.default.createElement(
+                    'p',
+                    null,
+                    'No responses'
+                );
+            } else {
+                return _react2.default.createElement(
+                    'div',
+                    null,
+                    _react2.default.createElement(
+                        'p',
+                        null,
+                        'Mean: ',
+                        stats.mean
+                    ),
+                    _react2.default.createElement(
+                        'dl',
+                        null,
+                        stats.bins.map(function (x, i) {
+                            return _react2.default.createElement(
+                                'dd',
+                                { className: 'percentage', key: i },
+                                _react2.default.createElement(
+                                    'span',
+                                    { className: 'text' },
+                                    x.r,
+                                    ' (',
+                                    x.n,
+                                    ')'
+                                ),
+                                _react2.default.createElement('span', { className: 'bar', style: { width: x.p * 100 + "%" } })
+                            );
+                        })
+                    )
+                );
+            }
+        }
+    }]);
+
+    return Histogram;
 }(_react2.default.Component);
 
 /***/ }),
@@ -15314,6 +15418,12 @@ var Poll = function (_React$Component2) {
                         );
                     });
                 }
+            } else if (poll.type == "number") {
+                input = _react2.default.createElement(
+                    'div',
+                    null,
+                    _react2.default.createElement('input', { types: 'text', style: { width: "100%" }, placeholder: 'Please enter a number', onChange: this.handleTextChange })
+                );
             } else {
                 input = _react2.default.createElement(
                     'div',
