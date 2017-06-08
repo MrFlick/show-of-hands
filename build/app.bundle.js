@@ -14795,11 +14795,16 @@ var Poll = function (_React$Component4) {
                     _react2.default.createElement(
                         'div',
                         { className: 'card-block' },
-                        button,
                         _react2.default.createElement(
-                            _reactRouterDom.Link,
-                            { to: '/results/' + poll.poll_id },
-                            'results'
+                            'p',
+                            null,
+                            button,
+                            ' ',
+                            _react2.default.createElement(
+                                _reactRouterDom.Link,
+                                { to: '/results/' + poll.poll_id },
+                                'results'
+                            )
                         )
                     )
                 )
@@ -14977,7 +14982,7 @@ var ChoiceBarPlot = function (_React$Component2) {
             });
             var keys = poll.options && poll.options.values || Object.keys(counts);
             return keys.map(function (k) {
-                return { value: k, n: counts[k], p: counts[k] / n };
+                return { value: k, n: counts[k] || 0, p: counts[k] / n || 0 };
             });
         }
     }, {
@@ -14985,17 +14990,21 @@ var ChoiceBarPlot = function (_React$Component2) {
         value: function render() {
             var stats = this.summarizeStats();
             return _react2.default.createElement(
-                'div',
+                'dl',
                 null,
                 stats.map(function (x) {
                     return _react2.default.createElement(
-                        'p',
-                        { key: x.value },
-                        x.value,
-                        ' - ',
-                        x.n,
-                        ' - ',
-                        x.p
+                        'dd',
+                        { className: 'percentage', key: x.value },
+                        _react2.default.createElement(
+                            'span',
+                            { className: 'text' },
+                            x.value,
+                            ' (',
+                            x.n,
+                            ')'
+                        ),
+                        _react2.default.createElement('span', { className: 'bar', style: { width: x.p * 100 + "%" } })
                     );
                 })
             );

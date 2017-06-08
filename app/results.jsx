@@ -73,13 +73,14 @@ class ChoiceBarPlot extends React.Component {
         var counts = count(resps, (x) => {return x.response} )
         var keys = (poll.options && poll.options.values) || Object.keys(counts)
         return keys.map((k) => {
-            return {value: k, n: counts[k], p: counts[k]/n}
+            return {value: k, n: counts[k] || 0, p: counts[k]/n || 0}
         })
     }
     render() {
         let stats = this.summarizeStats();
-        return <div>{stats.map((x) => {
-            return <p key={x.value}>{x.value} - {x.n} - {x.p}</p>
-        })}</div>
+        return <dl>{stats.map((x) => {
+            return <dd className="percentage" key={x.value}><span className="text">{x.value} ({x.n})</span>
+            <span className="bar" style={{width: (x.p*100) + "%"}}></span></dd>
+        })}</dl>
     }
 }

@@ -208,7 +208,7 @@ class Poll extends React.Component {
         }
         return <div className="card"><form onSubmit={this.handleSubmit}>
             <div className="card-header">{this.state.title} ({this.state.response_count})</div>
-            <div className="card-block">{button}<Link to={`/results/${poll.poll_id}`}>results</Link></div>
+            <div className="card-block"><p>{button} <Link to={`/results/${poll.poll_id}`}>results</Link></p></div>
             </form></div>; 
     }    
     
