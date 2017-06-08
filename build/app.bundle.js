@@ -14748,7 +14748,11 @@ var Snippet = function (_React$Component3) {
                     _react2.default.createElement(
                         'div',
                         { className: 'card-block' },
-                        this.state.code
+                        _react2.default.createElement(
+                            'pre',
+                            null,
+                            this.state.code
+                        )
                     ),
                     _react2.default.createElement(
                         'div',
@@ -15493,13 +15497,21 @@ exports.default = Student;
 
 
 function SnippetList(props) {
-    return _react2.default.createElement(
-        'div',
-        null,
-        props.snippets.map(function (row, i) {
-            return _react2.default.createElement(Snippet, { key: row.snippet_id, snippet: row });
-        })
-    );
+    if (props.snippets.length) {
+        return _react2.default.createElement(
+            'div',
+            null,
+            props.snippets.map(function (row, i) {
+                return _react2.default.createElement(Snippet, { key: row.snippet_id, snippet: row });
+            })
+        );
+    } else {
+        return _react2.default.createElement(
+            'p',
+            null,
+            'No snippets currently shared'
+        );
+    }
 }
 
 function Snippet(props) {
@@ -15526,13 +15538,21 @@ function Snippet(props) {
 
 function PollList(props) {
     var socket = props.socket;
-    return _react2.default.createElement(
-        'div',
-        null,
-        props.polls.map(function (row, i) {
-            return _react2.default.createElement(Poll, { key: row.poll_id, poll: row, socket: socket });
-        })
-    );
+    if (props.polls.length) {
+        return _react2.default.createElement(
+            'div',
+            null,
+            props.polls.map(function (row, i) {
+                return _react2.default.createElement(Poll, { key: row.poll_id, poll: row, socket: socket });
+            })
+        );
+    } else {
+        return _react2.default.createElement(
+            'p',
+            null,
+            'No polls curently open'
+        );
+    }
 }
 
 var Poll = function (_React$Component2) {
@@ -15870,7 +15890,6 @@ var io = __webpack_require__(124);
 var socket = io("/", { "path": "/" + 'socket.io' });
 
 var cid = (0, _guid.getClientID)();
-console.log(cid);
 
 socket.on("who are you", function () {
     socket.emit("hello", { client_id: cid });

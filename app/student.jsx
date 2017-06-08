@@ -77,9 +77,13 @@ export default class Student extends React.Component {
 }
 
 function SnippetList(props) {
-    return <div>{props.snippets.map((row, i) => {
-        return <Snippet key={row.snippet_id} snippet={row}/>;
-    })}</div>
+    if (props.snippets.length) {
+        return <div>{props.snippets.map((row, i) => {
+            return <Snippet key={row.snippet_id} snippet={row}/>;
+        })}</div>
+    } else {
+        return <p>No snippets currently shared</p>
+    }
 }
 
 function Snippet(props) {
@@ -92,9 +96,13 @@ function Snippet(props) {
 
 function PollList(props) {
     var socket = props.socket;
-    return <div>{props.polls.map((row, i) => {
-        return <Poll key={row.poll_id} poll={row} socket={socket}></Poll>;
-    })}</div>
+    if (props.polls.length) {
+        return <div>{props.polls.map((row, i) => {
+            return <Poll key={row.poll_id} poll={row} socket={socket}></Poll>;
+        })}</div>
+    } else {
+        return <p>No polls curently open</p>
+    }
 }
 
 class Poll extends React.Component {

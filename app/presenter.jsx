@@ -168,7 +168,7 @@ class Snippet extends React.Component {
         }
         return <div className="card"><form onSubmit={this.handleSubmit}>
             <div className={classNames("card-header", {"open-poll": this.state.status==1})}>{this.state.title}</div>
-            <div className="card-block">{this.state.code}</div>
+            <div className="card-block"><pre>{this.state.code}</pre></div>
             <div className="card-block">{button} <button onClick={this.removeSnippet}>Delete</button></div>
             </form></div>; 
     }    
