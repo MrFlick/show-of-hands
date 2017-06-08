@@ -40,7 +40,7 @@ var getClientIDBySocket = (function() {
 
 io.on('connection', function(socket) {
     console.log("a user connected");
-    let clientID = getClientIDBySocket(socket);
+    let clientID = getClientIDByIP(socket);
     socket.emit("you are", {id: clientID});
     socket.on("add poll", function(msg) {
         data.addPoll(msg).then((poll) => {
