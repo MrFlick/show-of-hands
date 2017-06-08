@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
 /******/
 /******/ 	// __webpack_public_path__
-/******/ 	__webpack_require__.p = "/";
+/******/ 	__webpack_require__.p = "/bdsi/";
 /******/
 /******/ 	// Load entry module and return exports
 /******/ 	return __webpack_require__(__webpack_require__.s = 126);
@@ -15475,7 +15475,11 @@ function Snippet(props) {
         _react2.default.createElement(
             'div',
             { className: 'card-block' },
-            snippet.code
+            _react2.default.createElement(
+                'pre',
+                null,
+                snippet.code
+            )
         )
     );
 }
@@ -15821,11 +15825,11 @@ var _results2 = _interopRequireDefault(_results);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var io = __webpack_require__(123);
-var socket = io("/", { "path": "/" + 'socket.io' });
+var socket = io("/", { "path": "/bdsi/" + 'socket.io' });
 
 _reactDom2.default.render(_react2.default.createElement(
     _reactRouterDom.BrowserRouter,
-    { basename: "/" },
+    { basename: "/bdsi/" },
     _react2.default.createElement(
         _reactRouterDom.Switch,
         null,

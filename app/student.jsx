@@ -86,7 +86,7 @@ function Snippet(props) {
     let snippet = props.snippet;
     return <div className="card">
         <div className="card-header">{snippet.title}</div>
-        <div className="card-block">{snippet.code}</div>
+        <div className="card-block"><pre>{snippet.code}</pre></div>
     </div>; 
 }
 
