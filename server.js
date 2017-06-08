@@ -15,33 +15,56 @@ app.get("*", function(req, res) {
 
 var getClientIDByIP = (function() {
     var clients = new Map();
-    return function getClientID(socket) {
+    return function (socket, cb) {
         let clientIP = socket.request.connection.remoteAddress;
         let clientID = 0;
         if (clients.has(clientIP)) {
             clientID = clients.get(clientIP);
         } else {
-            clientID = Map.length;
+            clientID = clients.size+1;
             clients.set(clientIP, clientID);
         }
-        return clientID
+        if (cb) {cb(clientID);}
     }
 })();
 
 var getClientIDBySocket = (function() {
     //just for testing
     var nextClient = 0;
-    return function getClientID(socket) {
+    return function (socket, cb) {
         nextClient += 1;
-        return nextClient;
+        if (cb) {cb(nextClient)}
+    }
+})();
+
+var getClientIDByGUID = (function() {
+    var clients = new Map();
+    function helloParse(msg) {
+        var guid = msg.client_id;
+        if (clients.has(guid)) {
+            clientID = clients.get(guid);
+        } else {
+            clientID = clients.size+1;
+            clients.set(guid, clientID);
+        }
+        return clientID;
+    }
+    return function(socket, cb) {
+        socket.once("hello", function(msg) {
+            cb(helloParse(msg))
+        })
     }
 })();
 
 
 io.on('connection', function(socket) {
     console.log("a user connected");
-    let clientID = getClientIDByIP(socket);
-    socket.emit("you are", {id: clientID});
+    let clientID = -1;
+    getClientIDByGUID(socket, function(id) {
+        clientID = id
+        socket.emit("you are", {id: clientID});
+    });
+    socket.emit("who are you");
     socket.on("add poll", function(msg) {
         data.addPoll(msg).then((poll) => {
             io.emit("new poll", poll);

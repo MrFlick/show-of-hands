@@ -8,6 +8,13 @@ const socket = io("/", {"path": `${PUB_STEM}socket.io`});
 import Student from './student';
 import Presenter from './presenter';
 import Results from './results';
+import { getClientID } from './guid'
+
+let cid = getClientID()
+
+socket.on("who are you", () => {
+    socket.emit("hello", {client_id: cid})
+})
 
 ReactDOM.render(
     <BrowserRouter basename={PUB_STEM}><Switch>
