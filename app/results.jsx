@@ -34,10 +34,52 @@ export default class Results extends React.Component {
         })
     }
     render() {
-        return <div><Link to="/podium">Return</Link>{
-        this.state.responses.map((resp) => {
-            return <p key={resp.rowid}>{resp.response}</p>
+        let drawcomp = null;
+        if (this.state.type=="multiple_choice") {
+            drawcomp = <ChoiceBarPlot poll={this.state} responses={this.state.responses}/>
+        } else if (this.state.type=="text") {
+            drawcomp = <ResponseDump poll={this.state} responses={this.state.responses}/>
+        } else {
+            drawcomp = <div>Type: {this.state.type}</div>
+        }
+        return <div><Link to="/podium">Return</Link>
+        <h2>{this.state.title || "Poll"}</h2>{drawcomp}</div>
+    }
+}
+
+function count(ary, classifier) {
+    return ary.reduce(function(counter, item) {
+        var p = (classifier || String)(item);
+        counter[p] = counter.hasOwnProperty(p) ? counter[p] + 1 : 1;
+        return counter;
+    }, {})
+}
+
+function ResponseDump(props) {
+    return <div>{props.responses.map((resp) => {
+        return <p key={resp.rowid}>{resp.response}</p>
+    })}</div>    
+}
+
+class ChoiceBarPlot extends React.Component {
+    constructor(props) {
+        super(props)
+        this.summarizeStats = this.summarizeStats.bind(this);
+    }
+    summarizeStats() {
+        var resps = this.props.responses;
+        var poll = this.props.poll;
+        var n = resps.length;
+        var counts = count(resps, (x) => {return x.response} )
+        var keys = (poll.options && poll.options.values) || Object.keys(counts)
+        return keys.map((k) => {
+            return {value: k, n: counts[k], p: counts[k]/n}
         })
-        }</div>
+    }
+    render() {
+        let stats = this.summarizeStats();
+        return <div>{stats.map((x) => {
+            return <p key={x.value}>{x.value} - {x.n} - {x.p}</p>
+        })}</div>
     }
 }

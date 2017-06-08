@@ -13,7 +13,7 @@ app.get("*", function(req, res) {
     res.sendFile(__dirname + '/build/index.html');
 });
 
-var getClientID = (function() {
+var getClientIDByIP = (function() {
     var clients = new Map();
     return function getClientID(socket) {
         let clientIP = socket.request.connection.remoteAddress;
@@ -28,9 +28,19 @@ var getClientID = (function() {
     }
 })();
 
+var getClientIDBySocket = (function() {
+    //just for testing
+    var nextClient = 0;
+    return function getClientID(socket) {
+        nextClient += 1;
+        return nextClient;
+    }
+})();
+
+
 io.on('connection', function(socket) {
     console.log("a user connected");
-    let clientID = getClientID(socket);
+    let clientID = getClientIDBySocket(socket);
     socket.emit("you are", {id: clientID});
     socket.on("add poll", function(msg) {
         data.addPoll(msg).then((poll) => {

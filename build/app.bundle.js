@@ -14895,6 +14895,19 @@ var Results = function (_React$Component) {
     }, {
         key: 'render',
         value: function render() {
+            var drawcomp = null;
+            if (this.state.type == "multiple_choice") {
+                drawcomp = _react2.default.createElement(ChoiceBarPlot, { poll: this.state, responses: this.state.responses });
+            } else if (this.state.type == "text") {
+                drawcomp = _react2.default.createElement(ResponseDump, { poll: this.state, responses: this.state.responses });
+            } else {
+                drawcomp = _react2.default.createElement(
+                    'div',
+                    null,
+                    'Type: ',
+                    this.state.type
+                );
+            }
             return _react2.default.createElement(
                 'div',
                 null,
@@ -14903,13 +14916,12 @@ var Results = function (_React$Component) {
                     { to: '/podium' },
                     'Return'
                 ),
-                this.state.responses.map(function (resp) {
-                    return _react2.default.createElement(
-                        'p',
-                        { key: resp.rowid },
-                        resp.response
-                    );
-                })
+                _react2.default.createElement(
+                    'h2',
+                    null,
+                    this.state.title || "Poll"
+                ),
+                drawcomp
             );
         }
     }]);
@@ -14918,6 +14930,80 @@ var Results = function (_React$Component) {
 }(_react2.default.Component);
 
 exports.default = Results;
+
+
+function count(ary, classifier) {
+    return ary.reduce(function (counter, item) {
+        var p = (classifier || String)(item);
+        counter[p] = counter.hasOwnProperty(p) ? counter[p] + 1 : 1;
+        return counter;
+    }, {});
+}
+
+function ResponseDump(props) {
+    return _react2.default.createElement(
+        'div',
+        null,
+        props.responses.map(function (resp) {
+            return _react2.default.createElement(
+                'p',
+                { key: resp.rowid },
+                resp.response
+            );
+        })
+    );
+}
+
+var ChoiceBarPlot = function (_React$Component2) {
+    _inherits(ChoiceBarPlot, _React$Component2);
+
+    function ChoiceBarPlot(props) {
+        _classCallCheck(this, ChoiceBarPlot);
+
+        var _this4 = _possibleConstructorReturn(this, (ChoiceBarPlot.__proto__ || Object.getPrototypeOf(ChoiceBarPlot)).call(this, props));
+
+        _this4.summarizeStats = _this4.summarizeStats.bind(_this4);
+        return _this4;
+    }
+
+    _createClass(ChoiceBarPlot, [{
+        key: 'summarizeStats',
+        value: function summarizeStats() {
+            var resps = this.props.responses;
+            var poll = this.props.poll;
+            var n = resps.length;
+            var counts = count(resps, function (x) {
+                return x.response;
+            });
+            var keys = poll.options && poll.options.values || Object.keys(counts);
+            return keys.map(function (k) {
+                return { value: k, n: counts[k], p: counts[k] / n };
+            });
+        }
+    }, {
+        key: 'render',
+        value: function render() {
+            var stats = this.summarizeStats();
+            return _react2.default.createElement(
+                'div',
+                null,
+                stats.map(function (x) {
+                    return _react2.default.createElement(
+                        'p',
+                        { key: x.value },
+                        x.value,
+                        ' - ',
+                        x.n,
+                        ' - ',
+                        x.p
+                    );
+                })
+            );
+        }
+    }]);
+
+    return ChoiceBarPlot;
+}(_react2.default.Component);
 
 /***/ }),
 /* 121 */
@@ -15160,15 +15246,17 @@ var Poll = function (_React$Component2) {
     _createClass(Poll, [{
         key: 'handleChange',
         value: function handleChange(e) {
-            console.log("change");
-            this.setState({ value: e.target.value });
-            var poll = this.props.poll;
-            var resp = {
-                poll_id: poll.poll_id,
-                value: this.state.value
-            };
-            this.socket.emit("poll response", resp);
-            this.setState({ answered: true });
+            var _this5 = this;
+
+            this.setState({ value: e.target.value }, function () {
+                var poll = _this5.props.poll;
+                var resp = {
+                    poll_id: poll.poll_id,
+                    value: _this5.state.value
+                };
+                _this5.socket.emit("poll response", resp);
+                _this5.setState({ answered: true });
+            });
         }
     }, {
         key: 'handleTextChange',
@@ -15189,7 +15277,7 @@ var Poll = function (_React$Component2) {
     }, {
         key: 'render',
         value: function render() {
-            var _this5 = this;
+            var _this6 = this;
 
             var state = this.state;
             function bclass(x) {
@@ -15210,7 +15298,7 @@ var Poll = function (_React$Component2) {
                     input = poll.options.values.map(function (x, i) {
                         return _react2.default.createElement(
                             'button',
-                            { className: bclass(x), onClick: _this5.handleChange, value: x, key: x },
+                            { className: bclass(x), onClick: _this6.handleChange, value: x, key: x },
                             x
                         );
                     });
