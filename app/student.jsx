@@ -12,8 +12,8 @@ export default class Student extends React.Component {
             "close poll": (poll) => this.closePoll(poll),
             "poll list": (polls) => this.refreshPolls(polls),
             "snippet list": (snips) => this.refreshSnippets(snips),
-            "new snippet": (snip) => this.newSnippet(snip),
-            "remove snippet": (snip) => this.removeSnippet(snip)
+            "open snippet": (snip) => this.openSnippet(snip),
+            "close snippet": (snip) => this.closeSnippet(snip)
         }
     }
     initClient(client) {
@@ -35,12 +35,12 @@ export default class Student extends React.Component {
     refreshSnippets(snips) {
         this.setState({snippets: snips});
     }
-    newSnippet(snip) {
+    openSnippet(snip) {
         this.setState(previousState => ({
             snippets: [snip, ...previousState.snippets]
         }))
     }
-    removeSnippet(snip) {
+    closeSnippet(snip) {
         this.setState({
             snippets: this.state.snippets.filter((s)=>s.snippet_id != snip.snippet_id)
         })

@@ -42,7 +42,7 @@ export default class Presenter extends React.Component {
             this.socket.on(k, this.socket_events[k])
         })
         this.socket.emit("request poll list all")
-        this.socket.emit("request snippet list")
+        this.socket.emit("request snippet list all")
     }
     componentWillUnmount() {
         Object.keys(this.socket_events).map((k)=> {
@@ -114,7 +114,13 @@ class Snippet extends React.Component {
         this.socket = props.socket;
         this.handleSubmit = this.handleSubmit.bind(this);
         this.handleRemove = this.handleRemove.bind(this);
-        this.socket_events = {}
+        this.openSnippet = this.openSnippet.bind(this);
+        this.closeSnippet = this.closeSnippet.bind(this);
+        this.handleSnippetUpdate = this.handleSnippetUpdate.bind(this);
+        this.socket_events = {
+            "open snippet": this.handleSnippetUpdate,
+            "close snippet": this.handleSnippetUpdate
+        }
     }
     componentDidMount() {
         Object.keys(this.socket_events).map((k)=> {
@@ -126,24 +132,42 @@ class Snippet extends React.Component {
             this.socket.off(k, this.socket_events[k])
         })
     }
+    handleSnippetUpdate(snip) {
+        if (this.state.snippet_id == snip.snippet_id) {
+            this.setState(snip)
+        };
+    }
     handleRemove(e) {
         this.socket.emit("remove snippet", this.state) 
+    }
+    openSnippet(e) {
+         this.socket.emit("open snippet", this.state);
+    }
+    closeSnippet(e) {
+        this.socket.emit("close snippet", this.state);
     }
     handleSubmit(e) {
         e.preventDefault();
     }
     render() {
-        var name = "status" + this.state.poll_id;
-        let poll = this.state;
-        let button = <button onClick={this.handleRemove}>Delete</button>
+        let button = null;
+        let snip = this.state;
+        if (snip.status == 0) {
+            button = <button onClick={this.openSnippet}>Open</button>
+        } else if(snip.status ==1) {
+            button = <button onClick={this.closeSnippet}>Close</button>
+        } else if (snip.status == 2) {
+            button = <button onClick={this.openSnippet}>Re-open</button>
+        }
         return <div className="card"><form onSubmit={this.handleSubmit}>
-            <div className="card-header">{this.state.title}</div>
+            <div className={classNames("card-header", {"open-poll": this.state.status==1})}>{this.state.title}</div>
             <div className="card-block">{this.state.code}</div>
             <div className="card-block">{button}</div>
             </form></div>; 
     }    
     
 }
+
 function PollList(props) {
     var socket = props.socket;
     return <div>{props.polls.map((row) => {
@@ -188,17 +212,16 @@ class Poll extends React.Component {
             this.setState(poll)
         };
     }
-    handleSubmit(e) {
-        e.preventDefault();
-    }
     openPoll() {
         this.socket.emit("open poll", this.state);
     }
     closePoll() {
         this.socket.emit("close poll", this.state);
     }
+    handleSubmit(e) {
+        e.preventDefault();
+    }
     render() {
-        var name = "status" + this.state.poll_id;
         let button = null;
         let poll = this.state;
         if (poll.status == 0) {

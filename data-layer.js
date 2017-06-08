@@ -171,14 +171,29 @@ var DataStore = function(dbpath) {
             })
     };
 
-    this.removeSnippet = function(snip) {
-        let sql = "DELETE FROM snippets WHERE snippet_id=?";
-        return update(db, sql, snip.snippet_id)
+	this.getSnippets = function(include_closed) {
+		let sql = "SELECT * FROM snippets"
+		if (!!!include_closed) {
+			sql = sql + " WHERE status=1"
+		}
+		sql = sql + " ORDER BY rowid DESC"
+		return getAll(db, sql);
+	};
+
+	this.openSnippet = function(snip) {
+        return update(db, "UPDATE snippets SET status=1, " + 
+            "open_seq = (SELECT max(open_seq) from snippets)+1 " + 
+            "WHERE snippet_id=?", snip.snippet_id).then(() => {
+                return this.getSnippet(snip.snippet_id)
+            });
     };
 
-	this.getSnippets = function() {
-		return getAll(db, "SELECT * FROM snippets ORDER BY rowid DESC;");
-	};
+	this.closeSnippet = function(snip) {
+        return update(db, "UPDATE snippets SET status=2 WHERE snippet_id=?", 
+            snip.snippet_id).then(() => {
+                return this.getSnippet(snip.snippet_id)
+        });
+    };
 
 	this.getSnippet = function(snippet_id) {
 		return getOne(db, "SELECT * FROM snippets where snippet_id=?", snippet_id);

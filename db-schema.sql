@@ -20,5 +20,7 @@ CREATE TABLE poll_responses (
 CREATE TABLE snippets (
 	snippet_id INTEGER PRIMARY KEY,
 	title TEXT,
-	code TEXT
+	code TEXT,
+	status INTEGER NOT NULL DEFAULT 0,
+	open_seq INTEGER NOT NULL DEFAULT 0
 );

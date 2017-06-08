@@ -62,6 +62,16 @@ io.on('connection', function(socket) {
             io.emit("new snippet", snip);
         })
     });
+    socket.on("open snippet", function(msg) {
+        data.openSnippet(msg).then((snip) => {
+            io.emit("open snippet", snip);
+        })
+    });
+    socket.on("close snippet", function(msg) {
+        data.closeSnippet(msg).then((snip) => {
+            io.emit("close snippet", snip);
+        })
+    });
     socket.on("remove snippet", function(msg) {
         data.removeSnippet(msg).then(() => {
             io.emit("remove snippet", msg);
@@ -103,6 +113,11 @@ io.on('connection', function(socket) {
     });
     socket.on("request snippet list", function() {
         data.getSnippets().then((snips) => {;
+            socket.emit("snippet list", snips);
+        });
+    });
+    socket.on("request snippet list all", function() {
+        data.getSnippets(true).then((snips) => {;
             socket.emit("snippet list", snips);
         });
     });
