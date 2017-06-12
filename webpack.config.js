@@ -6,14 +6,14 @@ module.exports = {
     entry: './app/main.jsx',
     output: {
         path: path.resolve(__dirname, 'build'),
-        publicPath: '/bdsi/',
-        //publicPath: '/',
+        //publicPath: '/bdsi/',
+        publicPath: '/',
         filename: 'app.bundle.js'
     },
     plugins: [
         new webpack.DefinePlugin({
-            PUB_STEM: JSON.stringify("/bdsi/")
-            //PUB_STEM: JSON.stringify("/")
+            //PUB_STEM: JSON.stringify("/bdsi/")
+            PUB_STEM: JSON.stringify("/")
         }),
         new HtmlWebpackPlugin({
             template: 'app/template.html',

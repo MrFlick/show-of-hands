@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
 /******/
 /******/ 	// __webpack_public_path__
-/******/ 	__webpack_require__.p = "/bdsi/";
+/******/ 	__webpack_require__.p = "/";
 /******/
 /******/ 	// Load entry module and return exports
 /******/ 	return __webpack_require__(__webpack_require__.s = 131);
@@ -14773,6 +14773,8 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _react = __webpack_require__(4);
@@ -14988,7 +14990,7 @@ var NewSnippetForm = function (_React$Component2) {
                 _react2.default.createElement(
                     'button',
                     { style: { width: "100%" }, className: 'btn btn-primary' },
-                    'Send'
+                    'Save'
                 )
             );
         }
@@ -15129,34 +15131,96 @@ var Snippet = function (_React$Component3) {
     return Snippet;
 }(_react2.default.Component);
 
-function PollList(props) {
-    var socket = props.socket;
-    return _react2.default.createElement(
-        'div',
-        null,
-        _react2.default.createElement(NewPollForm, { socket: socket }),
-        props.polls.map(function (row) {
-            return _react2.default.createElement(Poll, { key: row.poll_id, poll: row, socket: socket });
-        })
-    );
-}
+var PollList = function (_React$Component4) {
+    _inherits(PollList, _React$Component4);
 
-var NewPollForm = function (_React$Component4) {
-    _inherits(NewPollForm, _React$Component4);
+    function PollList(props) {
+        _classCallCheck(this, PollList);
 
-    function NewPollForm(props) {
-        _classCallCheck(this, NewPollForm);
+        var _this8 = _possibleConstructorReturn(this, (PollList.__proto__ || Object.getPrototypeOf(PollList)).call(this, props));
 
-        var _this8 = _possibleConstructorReturn(this, (NewPollForm.__proto__ || Object.getPrototypeOf(NewPollForm)).call(this, props));
-
-        _this8.socket = props.socket;
-        _this8.state = { title: "untitled", type: "text", options: "" };
-        _this8.handleInputChange = _this8.handleInputChange.bind(_this8);
-        _this8.handleSubmit = _this8.handleSubmit.bind(_this8);
+        _this8.state = { edit_id: null };
+        _this8.renderViewOrForm = _this8.renderViewOrForm.bind(_this8);
+        _this8.handleEdit = _this8.handleEdit.bind(_this8);
+        _this8.handleStatusChange = _this8.handleStatusChange.bind(_this8);
         return _this8;
     }
 
-    _createClass(NewPollForm, [{
+    _createClass(PollList, [{
+        key: 'handleEdit',
+        value: function handleEdit(poll) {
+            this.setState({ edit_id: poll.poll_id });
+        }
+    }, {
+        key: 'handleStatusChange',
+        value: function handleStatusChange() {
+            this.setState({ edit_id: null });
+        }
+    }, {
+        key: 'renderViewOrForm',
+        value: function renderViewOrForm(item, socket) {
+            if (item.poll_id == this.state.edit_id) {
+                return _react2.default.createElement(PollForm, { key: item.poll_id, poll: item, onStatusChange: this.handleStatusChange,
+                    socket: socket, action: 'edit' });
+            } else {
+                return _react2.default.createElement(Poll, { key: item.poll_id, poll: item, onEdit: this.handleEdit, socket: socket });
+            }
+        }
+    }, {
+        key: 'render',
+        value: function render() {
+            var _this9 = this;
+
+            var socket = this.props.socket;
+            var polls = this.props.polls;
+            return _react2.default.createElement(
+                'div',
+                null,
+                _react2.default.createElement(PollForm, { action: 'new', socket: socket }),
+                polls.map(function (row) {
+                    return _this9.renderViewOrForm(row, socket);
+                })
+            );
+        }
+    }]);
+
+    return PollList;
+}(_react2.default.Component);
+
+var PollForm = function (_React$Component5) {
+    _inherits(PollForm, _React$Component5);
+
+    function PollForm(props) {
+        _classCallCheck(this, PollForm);
+
+        var _this10 = _possibleConstructorReturn(this, (PollForm.__proto__ || Object.getPrototypeOf(PollForm)).call(this, props));
+
+        _this10.socket = props.socket;
+        _this10.orig_state = props.poll || { title: "untitled",
+            type: "text",
+            options: ""
+        };
+        if (_typeof(_this10.orig_state.options) === "object") {
+            _this10.orig_state.options = JSON.stringify(_this10.orig_state.options);
+        }
+        _this10.state = Object.assign(_this10.orig_state, { action: props.action || "new" });
+        _this10.handleInputChange = _this10.handleInputChange.bind(_this10);
+        _this10.handleStatusChange = _this10.handleStatusChange.bind(_this10);
+        _this10.handleSubmit = _this10.handleSubmit.bind(_this10);
+        _this10.handleCancel = _this10.handleCancel.bind(_this10);
+        _this10.handleUpdate = _this10.handleUpdate.bind(_this10);
+        _this10.handleAdd = _this10.handleAdd.bind(_this10);
+        return _this10;
+    }
+
+    _createClass(PollForm, [{
+        key: 'handleStatusChange',
+        value: function handleStatusChange() {
+            if (this.props.onStatusChange) {
+                this.props.onStatusChange("done");
+            }
+        }
+    }, {
         key: 'handleInputChange',
         value: function handleInputChange(e) {
             var target = e.target;
@@ -15166,102 +15230,149 @@ var NewPollForm = function (_React$Component4) {
             this.setState(_defineProperty({}, name, value));
         }
     }, {
+        key: 'handleCancel',
+        value: function handleCancel() {
+            this.handleStatusChange();
+        }
+    }, {
+        key: 'handleUpdate',
+        value: function handleUpdate() {
+            this.socket.emit("update poll", this.state);
+            this.handleStatusChange();
+        }
+    }, {
+        key: 'handleAdd',
+        value: function handleAdd() {
+            this.socket.emit("add poll", this.state);
+            this.setState({ title: "untitled", type: "text", options: "" });
+            this.handleStatusChange();
+        }
+    }, {
         key: 'handleSubmit',
         value: function handleSubmit(e) {
             e.preventDefault();
-            this.socket.emit("add poll", this.state);
-            this.setState({ title: "untitled", type: "text", options: "" });
         }
     }, {
         key: 'render',
         value: function render() {
-            return _react2.default.createElement(
-                'form',
-                { onSubmit: this.handleSubmit },
-                _react2.default.createElement('input', { name: 'title', value: this.state.title,
-                    onChange: this.handleInputChange,
-                    style: { width: "100%" } }),
-                _react2.default.createElement(
-                    'div',
-                    null,
-                    _react2.default.createElement(
-                        'label',
-                        null,
-                        _react2.default.createElement('input', { type: 'radio', name: 'type', value: 'text', onChange: this.handleInputChange,
-                            checked: this.state.type == "text" }),
-                        'text '
-                    ),
-                    _react2.default.createElement(
-                        'label',
-                        null,
-                        _react2.default.createElement('input', { type: 'radio', name: 'type', value: 'number', onChange: this.handleInputChange,
-                            checked: this.state.type == "number" }),
-                        'number '
-                    ),
-                    _react2.default.createElement(
-                        'label',
-                        null,
-                        _react2.default.createElement('input', { type: 'radio', name: 'type', value: 'multiple_choice', onChange: this.handleInputChange,
-                            checked: this.state.type == "multiple_choice" }),
-                        'choice'
-                    )
-                ),
-                _react2.default.createElement('textarea', { name: 'options', value: this.state.options,
-                    onChange: this.handleInputChange,
-                    style: { width: "100%", height: "100px" } }),
-                _react2.default.createElement(
+            var actions = null;
+            if (this.state.action == "new") {
+                actions = _react2.default.createElement(
                     'button',
-                    { style: { width: "100%" }, className: 'btn btn-primary' },
-                    'Send'
+                    { type: 'button', style: { width: "100%" },
+                        className: 'btn btn-primary', onClick: this.handleAdd },
+                    'Save'
+                );
+            } else if (this.state.action == "edit") {
+                actions = [_react2.default.createElement(
+                    'button',
+                    { type: 'button', style: { width: "50%" }, className: 'btn btn-primary',
+                        key: 'save', onClick: this.handleUpdate },
+                    'Save'
+                ), _react2.default.createElement(
+                    'button',
+                    { type: 'button', style: { width: "50%" }, className: 'btn',
+                        onClick: this.handleCancel, key: 'cancel' },
+                    'Cancel'
+                )];
+            }
+            return _react2.default.createElement(
+                'div',
+                { className: 'card poll-form' },
+                _react2.default.createElement(
+                    'form',
+                    { onSubmit: this.handleSubmit },
+                    _react2.default.createElement(
+                        'div',
+                        { className: 'card-header' },
+                        _react2.default.createElement('input', { name: 'title', value: this.state.title,
+                            onChange: this.handleInputChange,
+                            style: { width: "100%" } })
+                    ),
+                    _react2.default.createElement(
+                        'div',
+                        { className: 'card-block' },
+                        _react2.default.createElement(
+                            'label',
+                            null,
+                            _react2.default.createElement('input', { type: 'radio', name: 'type', value: 'text', onChange: this.handleInputChange,
+                                checked: this.state.type == "text" }),
+                            ' text '
+                        ),
+                        _react2.default.createElement(
+                            'label',
+                            null,
+                            _react2.default.createElement('input', { type: 'radio', name: 'type', value: 'number', onChange: this.handleInputChange,
+                                checked: this.state.type == "number" }),
+                            ' number '
+                        ),
+                        _react2.default.createElement(
+                            'label',
+                            null,
+                            _react2.default.createElement('input', { type: 'radio', name: 'type', value: 'multiple_choice', onChange: this.handleInputChange,
+                                checked: this.state.type == "multiple_choice" }),
+                            ' choice'
+                        ),
+                        _react2.default.createElement('textarea', { name: 'options', value: this.state.options,
+                            onChange: this.handleInputChange,
+                            style: { width: "100%", height: "100px" } })
+                    ),
+                    _react2.default.createElement(
+                        'div',
+                        { className: 'card-block' },
+                        actions
+                    )
                 )
             );
         }
     }]);
 
-    return NewPollForm;
+    return PollForm;
 }(_react2.default.Component);
 
-var Poll = function (_React$Component5) {
-    _inherits(Poll, _React$Component5);
+var Poll = function (_React$Component6) {
+    _inherits(Poll, _React$Component6);
 
     function Poll(props) {
         _classCallCheck(this, Poll);
 
-        var _this9 = _possibleConstructorReturn(this, (Poll.__proto__ || Object.getPrototypeOf(Poll)).call(this, props));
+        var _this11 = _possibleConstructorReturn(this, (Poll.__proto__ || Object.getPrototypeOf(Poll)).call(this, props));
 
         var poll = props.poll;
-        _this9.state = poll;
-        _this9.socket = props.socket;
-        _this9.openPoll = _this9.openPoll.bind(_this9);
-        _this9.closePoll = _this9.closePoll.bind(_this9);
-        _this9.removePoll = _this9.removePoll.bind(_this9);
-        _this9.handleSubmit = _this9.handleSubmit.bind(_this9);
-        _this9.handlePollUpdate = _this9.handlePollUpdate.bind(_this9);
-        _this9.handlePollResponse = _this9.handlePollResponse.bind(_this9);
-        _this9.socket_events = {
-            "open poll": _this9.handlePollUpdate,
-            "close poll": _this9.handlePollUpdate,
-            "new poll response": _this9.handlePollResponse
+        _this11.state = poll;
+        _this11.socket = props.socket;
+        _this11.openPoll = _this11.openPoll.bind(_this11);
+        _this11.closePoll = _this11.closePoll.bind(_this11);
+        _this11.editPoll = _this11.editPoll.bind(_this11);
+        _this11.removePoll = _this11.removePoll.bind(_this11);
+        _this11.handleSubmit = _this11.handleSubmit.bind(_this11);
+        _this11.handlePollUpdate = _this11.handlePollUpdate.bind(_this11);
+        _this11.handlePollResponse = _this11.handlePollResponse.bind(_this11);
+        _this11.socket_events = {
+            "open poll": _this11.handlePollUpdate,
+            "close poll": _this11.handlePollUpdate,
+            "update poll": _this11.handlePollUpdate,
+            "new poll response": _this11.handlePollResponse
         };
-        return _this9;
+        return _this11;
     }
 
     _createClass(Poll, [{
         key: 'componentDidMount',
         value: function componentDidMount() {
-            var _this10 = this;
+            var _this12 = this;
 
             Object.keys(this.socket_events).map(function (k) {
-                _this10.socket.on(k, _this10.socket_events[k]);
+                _this12.socket.on(k, _this12.socket_events[k]);
             });
         }
     }, {
         key: 'componentWillUnmount',
         value: function componentWillUnmount() {
-            var _this11 = this;
+            var _this13 = this;
 
             Object.keys(this.socket_events).map(function (k) {
-                _this11.socket.off(k, _this11.socket_events[k]);
+                _this13.socket.off(k, _this13.socket_events[k]);
             });
         }
     }, {
@@ -15280,17 +15391,26 @@ var Poll = function (_React$Component5) {
         }
     }, {
         key: 'openPoll',
-        value: function openPoll() {
+        value: function openPoll(e) {
+            e.preventDefault();
             this.socket.emit("open poll", this.state);
         }
     }, {
         key: 'closePoll',
-        value: function closePoll() {
+        value: function closePoll(e) {
+            e.preventDefault();
             this.socket.emit("close poll", this.state);
         }
     }, {
+        key: 'editPoll',
+        value: function editPoll(e) {
+            e.preventDefault();
+            this.props.onEdit(this.state);
+        }
+    }, {
         key: 'removePoll',
-        value: function removePoll() {
+        value: function removePoll(e) {
+            e.preventDefault();
             this.socket.emit("remove poll", this.state);
         }
     }, {
@@ -15343,12 +15463,19 @@ var Poll = function (_React$Component5) {
                             'p',
                             null,
                             button,
-                            ' ',
+                            '\xA0',
+                            _react2.default.createElement(
+                                'button',
+                                { onClick: this.editPoll },
+                                'Edit'
+                            ),
+                            '\xA0',
                             _react2.default.createElement(
                                 'button',
                                 { onClick: this.removePoll },
                                 'Delete'
                             ),
+                            '\xA0',
                             _react2.default.createElement(
                                 _reactRouterDom.Link,
                                 { to: '/results/' + poll.poll_id },
@@ -16366,7 +16493,7 @@ var _guid = __webpack_require__(123);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var io = __webpack_require__(128);
-var socket = io("/", { "path": "/bdsi/" + 'socket.io' });
+var socket = io("/", { "path": "/" + 'socket.io' });
 
 /* global PUB_STEM, document */
 
@@ -16381,7 +16508,7 @@ _reactDom2.default.render(_react2.default.createElement(
     null,
     _react2.default.createElement(
         _reactRouterDom.BrowserRouter,
-        { basename: "/bdsi/" },
+        { basename: "/" },
         _react2.default.createElement(
             _reactRouterDom.Switch,
             null,

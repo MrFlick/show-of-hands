@@ -85,6 +85,11 @@ io.on('connection', function(socket) {
             io.emit("close poll", poll)
         })
     });
+    socket.on("update poll", function(msg) {
+        data.updatePoll(msg).then((poll) => {
+            io.emit("update poll", poll)
+        })
+    });
     socket.on("remove poll", function(msg) {
         data.deletePoll(msg).then(() => {
             io.emit("remove poll", msg)

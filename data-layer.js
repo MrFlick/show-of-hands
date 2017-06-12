@@ -158,6 +158,12 @@ var DataStore = function(dbpath) {
                 return this.getPoll(poll.poll_id)
         });
     };
+	this.updatePoll = function(poll) {
+        return update(db, "UPDATE polls SET title=?, type=?, options=? WHERE poll_id=?", 
+            poll.title, poll.type, poll.options, poll.poll_id).then(() => {
+                return this.getPoll(poll.poll_id)
+        });
+    };
 	this.addPollResponse = function(resp) {
         return upsert(db, "poll_responses",  ["poll_id", "client_id"], ["response"],
             [resp.poll_id, resp.client_id, resp.value]).then((actions) => {

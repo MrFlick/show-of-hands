@@ -107,7 +107,7 @@ class NewSnippetForm extends React.Component {
         <textarea name="code" value={this.state.code} 
             onChange={this.handleInputChange}
             style={{width: "100%", height: "200px"}} />
-        <button style={{width: "100%"}} className="btn btn-primary">Send</button>
+        <button style={{width: "100%"}} className="btn btn-primary">Save</button>
         </form>;
     }
 }
@@ -175,20 +175,64 @@ class Snippet extends React.Component {
     
 }
 
-function PollList(props) {
-    var socket = props.socket;
-    return <div><NewPollForm socket={socket}/>{props.polls.map((row) => {
-          return <Poll key={row.poll_id} poll={row} socket={socket}></Poll>
+class PollList extends React.Component {
+    constructor(props) {
+        super(props)
+        this.state = {edit_id: null}
+        this.renderViewOrForm = this.renderViewOrForm.bind(this)
+        this.handleEdit = this.handleEdit.bind(this)
+        this.handleStatusChange = this.handleStatusChange.bind(this)
+    }
+    
+    handleEdit(poll) {
+        this.setState({edit_id: poll.poll_id}) 
+    }
+
+    handleStatusChange() {
+        this.setState({edit_id: null}) 
+    }
+
+    renderViewOrForm(item, socket) {
+        if (item.poll_id == this.state.edit_id) {
+          return <PollForm key={item.poll_id} poll={item} onStatusChange={this.handleStatusChange} 
+            socket={socket} action="edit"/>
+        } else {
+          return <Poll key={item.poll_id} poll={item} onEdit={this.handleEdit} socket={socket}/>
+        }
+    }
+
+    render() {
+        let socket = this.props.socket
+        let polls = this.props.polls
+        return <div><PollForm action="new" socket={socket}/>{polls.map((row) =>  {
+            return this.renderViewOrForm(row, socket)
         })}</div>
+    }
 }
 
-class NewPollForm extends React.Component {
+class PollForm extends React.Component {
     constructor(props) {
         super(props);
         this.socket = props.socket;
-        this.state = {title: "untitled", type: "text", options:""};
-        this.handleInputChange = this.handleInputChange.bind(this);
-        this.handleSubmit = this.handleSubmit.bind(this);
+        this.orig_state = props.poll || {title: "untitled", 
+            type: "text", 
+            options: ""
+        }
+        if (typeof this.orig_state.options === "object") {
+            this.orig_state.options = JSON.stringify(this.orig_state.options)
+        }
+        this.state = Object.assign(this.orig_state, {action: props.action || "new"})
+        this.handleInputChange = this.handleInputChange.bind(this)
+        this.handleStatusChange = this.handleStatusChange.bind(this)
+        this.handleSubmit = this.handleSubmit.bind(this)
+        this.handleCancel = this.handleCancel.bind(this)
+        this.handleUpdate = this.handleUpdate.bind(this)
+        this.handleAdd = this.handleAdd.bind(this)
+    }
+    handleStatusChange() {
+        if (this.props.onStatusChange) {
+            this.props.onStatusChange("done")
+        }
     }
 
     handleInputChange(e) {
@@ -198,30 +242,52 @@ class NewPollForm extends React.Component {
 
         this.setState({[name]: value});
     }
-    handleSubmit(e) {
-        e.preventDefault();
+    handleCancel() {
+        this.handleStatusChange()
+    }
+    handleUpdate() {
+        this.socket.emit("update poll", this.state)
+        this.handleStatusChange()
+    }
+    handleAdd() {
         this.socket.emit("add poll", this.state)
         this.setState({title: "untitled", type: "text", options:""});
+        this.handleStatusChange()
+    }
+    handleSubmit(e) {
+        e.preventDefault();
     }
 
     render() {
-        return <form onSubmit={this.handleSubmit}>
-        <input name="title" value={this.state.title} 
-            onChange={this.handleInputChange}
-            style={{width: "100%"}} />
-        <div>
-            <label><input type="radio" name="type" value="text" onChange={this.handleInputChange} 
-                checked={this.state.type=="text"}/>text </label> 
-            <label><input type="radio" name="type" value="number" onChange={this.handleInputChange} 
-                checked={this.state.type=="number"}/>number </label> 
-            <label><input type="radio" name="type" value="multiple_choice" onChange={this.handleInputChange} 
-                checked={this.state.type=="multiple_choice"}/>choice</label>
-        </div>
-        <textarea name="options" value={this.state.options} 
-            onChange={this.handleInputChange}
-            style={{width: "100%", height: "100px"}} />
-        <button style={{width: "100%"}} className="btn btn-primary">Send</button>
-        </form>;
+        let actions = null
+        if (this.state.action=="new") {
+            actions = <button type="button" style={{width: "100%"}} 
+                className="btn btn-primary" onClick={this.handleAdd}>Save</button>
+        } else if (this.state.action=="edit") {
+            actions = [<button type="button" style={{width: "50%"}} className="btn btn-primary" 
+                key="save" onClick={this.handleUpdate}>Save</button>, 
+                <button type="button" style={{width: "50%"}} className="btn" 
+                onClick={this.handleCancel} key="cancel">Cancel</button>]
+        }
+        return <div className="card poll-form"><form onSubmit={this.handleSubmit}>
+            <div className="card-header">
+                <input name="title" value={this.state.title} 
+                    onChange={this.handleInputChange}
+                    style={{width: "100%"}} />
+            </div>
+            <div className="card-block">
+                <label><input type="radio" name="type" value="text" onChange={this.handleInputChange} 
+                    checked={this.state.type=="text"}/> text </label> 
+                <label><input type="radio" name="type" value="number" onChange={this.handleInputChange} 
+                    checked={this.state.type=="number"}/> number </label> 
+                <label><input type="radio" name="type" value="multiple_choice" onChange={this.handleInputChange} 
+                    checked={this.state.type=="multiple_choice"}/> choice</label>
+                <textarea name="options" value={this.state.options} 
+                    onChange={this.handleInputChange}
+                    style={{width: "100%", height: "100px"}}/>
+            </div>
+            <div className="card-block">{actions}</div> 
+        </form></div>
     }
 }
 
@@ -233,6 +299,7 @@ class Poll extends React.Component {
         this.socket = props.socket;
         this.openPoll = this.openPoll.bind(this);
         this.closePoll = this.closePoll.bind(this);
+        this.editPoll = this.editPoll.bind(this);
         this.removePoll = this.removePoll.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
         this.handlePollUpdate = this.handlePollUpdate.bind(this);
@@ -240,6 +307,7 @@ class Poll extends React.Component {
         this.socket_events = {
             "open poll":  this.handlePollUpdate,
             "close poll": this.handlePollUpdate,
+            "update poll": this.handlePollUpdate,
             "new poll response": this.handlePollResponse
         }
     }
@@ -263,13 +331,20 @@ class Poll extends React.Component {
             this.setState(poll)
         }
     }
-    openPoll() {
+    openPoll(e) {
+        e.preventDefault()
         this.socket.emit("open poll", this.state);
     }
-    closePoll() {
+    closePoll(e) {
+        e.preventDefault()
         this.socket.emit("close poll", this.state);
     }
-    removePoll() {
+    editPoll(e) {
+        e.preventDefault()
+        this.props.onEdit(this.state)
+    }
+    removePoll(e) {
+        e.preventDefault()
         this.socket.emit("remove poll", this.state);
     }
     handleSubmit(e) {
@@ -287,7 +362,9 @@ class Poll extends React.Component {
         }
         return <div className="card"><form onSubmit={this.handleSubmit}>
             <div className={classNames("card-header", {"open-poll": this.state.status==1})}>{this.state.title} ({this.state.response_count})</div>
-            <div className="card-block"><p>{button} <button onClick={this.removePoll}>Delete</button>
+            <div className="card-block"><p>{button}&nbsp; 
+                <button onClick={this.editPoll}>Edit</button>&nbsp;
+                <button onClick={this.removePoll}>Delete</button>&nbsp;
                 <Link to={`/results/${poll.poll_id}`}>results</Link></p></div>
             </form></div>; 
     }    
