@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom'; 
+import { SocketDataWrapper } from "./data_socket_wrapper"
 
 var classNames = require('classnames');
 
@@ -8,52 +9,24 @@ export default class Presenter extends React.Component {
         super(props)
         this.socket = props.socket
         this.state = {snippets: [], polls: []};
-        this.socket_events = {
-            "poll list": (polls) => this.refreshPolls(polls),
-            "new poll": (poll) => this.newPoll(poll),
-            "remove poll": (poll) => this.removePoll(poll),
-            "snippet list": (snips) => this.refreshSnippets(snips),
-            "new snippet": (snip) => this.newSnippet(snip),
-            "remove snippet": (snip) => this.removeSnippet(snip)
-        }
+        this.poll_wrapper = new SocketDataWrapper("poll", this.socket, (x) => this.setPolls(x))
+        this.snip_wrapper = new SocketDataWrapper("snippet", this.socket, (x) => this.setSnippets(x))
     }
-    newPoll(poll) {
-        this.setState(previousState => ({
-            polls: [...previousState.polls, poll]
-        }))
+    setPolls(polls) {
+        this.setState({polls: polls})
     }
-    removePoll(poll) {
-        this.setState({
-            polls: this.state.polls.filter((p)=>p.poll_id != poll.poll_id)
-        })
-    }
-    refreshPolls(polls) {
-        this.setState({polls: polls});
-    }
-    newSnippet(snip) {
-        this.setState(previousState => ({
-            snippets: [snip, ...previousState.snippets]
-        }))
-    }
-    removeSnippet(snip) {
-        this.setState({
-            snippets: this.state.snippets.filter((s)=>s.snippet_id != snip.snippet_id)
-        })
-    }
-    refreshSnippets(snips) {
-        this.setState({snippets: snips});
+    setSnippetsPolls(polls) {
+        this.setState({snippets: polls})
     }
     componentDidMount() {
-        Object.keys(this.socket_events).map((k)=> {
-            this.socket.on(k, this.socket_events[k])
-        })
+        this.poll_wrapper.listenStart()
+        this.snip_wrapper.listenStart()
         this.socket.emit("request poll list all")
         this.socket.emit("request snippet list all")
     }
     componentWillUnmount() {
-        Object.keys(this.socket_events).map((k)=> {
-            this.socket.off(k, this.socket_events[k])
-        })
+        this.poll_wraper.listenStop()
+        this.snip_wrapper.listenStop()
     }
     render() {
         return <div className="row">

@@ -14,7 +14,7 @@ export class SocketDataWrapper {
         this.handleRefresh = this.handleRefresh.bind(this)
         this.handleNew = this.handleNew.bind(this)
         this.handleUpdate = this.handleUpdate.bind(this)
-        this.handeRemove = this.handeRemove.bind(this)
+        this.handleRemove = this.handleRemove.bind(this)
         this.handleOnChange = this.handleOnChange.bind(this)
         this.socket_events = {
             [`${type} list`]: this.handleRefresh,
