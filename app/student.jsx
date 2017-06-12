@@ -1,5 +1,6 @@
 import React from 'react';
 import debounce from 'lodash/debounce';
+import { CSSTransitionGroup } from 'react-transition-group' // ES6
 
 export default class Student extends React.Component {
     constructor(props) {
@@ -78,9 +79,11 @@ export default class Student extends React.Component {
 
 function SnippetList(props) {
     if (props.snippets.length) {
-        return <div>{props.snippets.map((row) => {
+        return <div><CSSTransitionGroup transitionName="list"
+        transitionEnterTimeout={500}
+        transitionLeaveTimeout={300}>{props.snippets.map((row) => {
             return <Snippet key={row.snippet_id} snippet={row}/>;
-        })}</div>
+        })}</CSSTransitionGroup></div>
     } else {
         return <p>No snippets currently shared</p>
     }
@@ -97,9 +100,11 @@ function Snippet(props) {
 function PollList(props) {
     var socket = props.socket;
     if (props.polls.length) {
-        return <div>{props.polls.map((row) => {
+        return <div><CSSTransitionGroup transitionName="list"
+        transitionEnterTimeout={500}
+        transitionLeaveTimeout={300}>{props.polls.map((row) => {
             return <Poll key={row.poll_id} poll={row} socket={socket}></Poll>;
-        })}</div>
+        })}</CSSTransitionGroup></div>
     } else {
         return <p>No polls curently open</p>
     }

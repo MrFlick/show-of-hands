@@ -81,6 +81,23 @@
       transition: background-color .3s ease;
       cursor: pointer;
     }
+    .list-enter {
+      opacity: 0.01;
+    }
+
+    .list-enter.list-enter-active {
+      opacity: 1;
+      transition: opacity 500ms ease-in;
+    }
+
+    .list-leave {
+      opacity: 1;
+    }
+
+    .list-leave.list-leave-active {
+      opacity: 0.01;
+      transition: opacity 300ms ease-in;
+    }
     </style>
   </head>
   <body>
