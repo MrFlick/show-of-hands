@@ -13,10 +13,15 @@ app.get("*", function(req, res) {
     res.sendFile(__dirname + '/build/index.html');
 });
 
+function getSocketIP(socket) {
+    return socket.handshake.headers['x-forwarded-for'] || 
+        socket.handshake.address.address
+}
+
 var getClientIDByIP = (function() {
     var clients = new Map();
     return function (socket, cb) {
-        let clientIP = socket.request.connection.remoteAddress;
+        let clientIP = getSocketIP(socket);
         let clientID = 0;
         if (clients.has(clientIP)) {
             clientID = clients.get(clientIP);
@@ -50,14 +55,21 @@ var getClientIDByGUID = (function() {
 })();
 
 
+let user_count = 0;
 io.on('connection', function(socket) {
-    console.log("a user connected");
+    user_count++;
+    let remote_ip = getSocketIP(socket)
     let clientID = -1;
+    console.log("a user connected (" + user_count + ") " + remote_ip);
+    socket.on("disconnect", function() {
+        user_count--;
+        console.log("a user disconnected (" + user_count + ")");
+    });
+    socket.emit("who are you")
     getClientIDByGUID(socket, function(id) {
         clientID = id
-        socket.emit("you are", {id: clientID});
+        socket.emit("you are", {id: clientID})
     });
-    socket.emit("who are you");
     socket.on("add poll", function(msg) {
         data.addPoll(msg).then((poll) => {
             io.emit("new poll", poll)
@@ -113,9 +125,6 @@ io.on('connection', function(socket) {
         data.getPollResponses(msg).then((resp) => {
             socket.emit("poll responses list", resp)
         });
-    });
-    socket.on("disconnect", function() {
-        console.log("user disconnected")
     });
     socket.on("request prompt list", function() {
         data.getPrompts().then((prompts) => {
