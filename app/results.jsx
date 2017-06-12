@@ -33,8 +33,6 @@ export default class Results extends React.Component {
                         }
                     })
                 }))
-            } else {
-                console.log(resp.action);
             }
         }
     }

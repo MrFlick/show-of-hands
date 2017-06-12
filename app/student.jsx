@@ -78,7 +78,7 @@ export default class Student extends React.Component {
 
 function SnippetList(props) {
     if (props.snippets.length) {
-        return <div>{props.snippets.map((row, i) => {
+        return <div>{props.snippets.map((row) => {
             return <Snippet key={row.snippet_id} snippet={row}/>;
         })}</div>
     } else {
@@ -97,7 +97,7 @@ function Snippet(props) {
 function PollList(props) {
     var socket = props.socket;
     if (props.polls.length) {
-        return <div>{props.polls.map((row, i) => {
+        return <div>{props.polls.map((row) => {
             return <Poll key={row.poll_id} poll={row} socket={socket}></Poll>;
         })}</div>
     } else {
@@ -131,7 +131,7 @@ class Poll extends React.Component {
     }
     handleTextChange(e) {
         e.persist()
-        this.handleChangeDebounce(e);;
+        this.handleChangeDebounce(e)
     }
     handleSubmit(e) {
         e.preventDefault();
@@ -156,7 +156,7 @@ class Poll extends React.Component {
         let input;
         if (poll.type=="multiple_choice") {
             if (poll.options && poll.options.values) {
-                input = poll.options.values.map((x, i) => {
+                input = poll.options.values.map((x) => {
                     return <button className={bclass(x)} onClick={this.handleChange} value={x} key={x}>{x}</button>
                 });
             } 

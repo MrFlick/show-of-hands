@@ -1,4 +1,6 @@
 
+/*global window, performance*/
+
 function generateUUID () { // Public Domain/MIT
     // https://stackoverflow.com/a/8809472/2372064
     var d = new Date().getTime();

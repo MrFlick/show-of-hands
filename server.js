@@ -60,48 +60,48 @@ io.on('connection', function(socket) {
     socket.emit("who are you");
     socket.on("add poll", function(msg) {
         data.addPoll(msg).then((poll) => {
-            io.emit("new poll", poll);
+            io.emit("new poll", poll)
         })
     });
     socket.on("open poll", function(msg) {
         data.openPoll(msg).then((poll) => {
-            io.emit("open poll", poll);
+            io.emit("open poll", poll)
         })
     });
     socket.on("close poll", function(msg) {
         data.closePoll(msg).then((poll) => {
-            io.emit("close poll", poll);
+            io.emit("close poll", poll)
         })
     });
     socket.on("remove poll", function(msg) {
         data.deletePoll(msg).then(() => {
-            io.emit("remove poll", msg);
+            io.emit("remove poll", msg)
         })
     });
     socket.on("add snippet", function(msg) {
         data.addSnippet(msg).then((snip) => {
-            io.emit("new snippet", snip);
+            io.emit("new snippet", snip)
         })
     });
     socket.on("open snippet", function(msg) {
         data.openSnippet(msg).then((snip) => {
-            io.emit("open snippet", snip);
+            io.emit("open snippet", snip)
         })
     });
     socket.on("close snippet", function(msg) {
         data.closeSnippet(msg).then((snip) => {
-            io.emit("close snippet", snip);
+            io.emit("close snippet", snip)
         })
     });
     socket.on("remove snippet", function(msg) {
         data.deleteSnippet(msg).then(() => {
-            io.emit("remove snippet", msg);
+            io.emit("remove snippet", msg)
         })
     });
     socket.on("poll response", function(msg) {
         msg.client_id = clientID;
         data.addPollResponse(msg).then((resp) => {
-            io.emit("new poll response", resp);
+            io.emit("new poll response", resp)
         })
     });
     socket.on("request poll detail", function(msg) {
@@ -115,31 +115,31 @@ io.on('connection', function(socket) {
         });
     });
     socket.on("disconnect", function() {
-        console.log("user disconnected");
+        console.log("user disconnected")
     });
     socket.on("request prompt list", function() {
-        data.getPrompts().then((prompts) => {;
-            socket.emit("prompt list", prompts);
+        data.getPrompts().then((prompts) => {
+            socket.emit("prompt list", prompts)
         });
     });
     socket.on("request poll list", function() {
-        data.getPolls().then((polls) => {;
-            socket.emit("poll list", polls);
+        data.getPolls().then((polls) => {
+            socket.emit("poll list", polls)
         });
     });
     socket.on("request poll list all", function() {
-        data.getPolls(true).then((polls) => {;
-            socket.emit("poll list", polls);
+        data.getPolls(true).then((polls) => {
+            socket.emit("poll list", polls)
         });
     });
     socket.on("request snippet list", function() {
-        data.getSnippets().then((snips) => {;
-            socket.emit("snippet list", snips);
+        data.getSnippets().then((snips) => {
+            socket.emit("snippet list", snips)
         });
     });
     socket.on("request snippet list all", function() {
-        data.getSnippets(true).then((snips) => {;
-            socket.emit("snippet list", snips);
+        data.getSnippets(true).then((snips) => {
+            socket.emit("snippet list", snips)
         });
     });
 });

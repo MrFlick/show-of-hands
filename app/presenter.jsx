@@ -142,15 +142,15 @@ class Snippet extends React.Component {
     handleSnippetUpdate(snip) {
         if (this.state.snippet_id == snip.snippet_id) {
             this.setState(snip)
-        };
+        }
     }
-    openSnippet(e) {
+    openSnippet() {
          this.socket.emit("open snippet", this.state);
     }
-    closeSnippet(e) {
+    closeSnippet() {
         this.socket.emit("close snippet", this.state);
     }
-    removeSnippet(e) {
+    removeSnippet() {
         this.socket.emit("remove snippet", this.state) 
     }
     handleSubmit(e) {
@@ -256,12 +256,12 @@ class Poll extends React.Component {
     handlePollResponse(poll) {
         if (this.state.poll_id == poll.poll_id & poll.action=="insert") {
             this.setState({response_count: this.state.response_count +1})
-        };
+        }
     }
     handlePollUpdate(poll) {
         if (this.state.poll_id == poll.poll_id) {
             this.setState(poll)
-        };
+        }
     }
     openPoll() {
         this.socket.emit("open poll", this.state);

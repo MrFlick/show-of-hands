@@ -5,6 +5,9 @@ import { BrowserRouter, Switch, Route } from 'react-router-dom';
 const io = require('socket.io-client');
 const socket = io("/", {"path": `${PUB_STEM}socket.io`});
 
+
+/* global PUB_STEM, document */
+
 import Student from './student';
 import Presenter from './presenter';
 import Results from './results';
