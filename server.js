@@ -110,7 +110,12 @@ io.on('connection', function(socket) {
             io.emit("close snippet", snip)
         })
     });
-    socket.on("remove snippet", function(msg) {
+    socket.on("update snippet", function(msg) {
+        data.updateSnippet(msg).then((snip) => {
+            io.emit("update snippet", snip)
+        })
+    });
+    socket.on("delete snippet", function(msg) {
         data.deleteSnippet(msg).then(() => {
             io.emit("remove snippet", msg)
         })

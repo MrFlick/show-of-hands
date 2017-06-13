@@ -219,6 +219,13 @@ var DataStore = function(dbpath) {
         });
     };
 
+	this.updateSnippet = function(snip) {
+        return update(db, "UPDATE snippets SET title=?, code=? WHERE snippet_id=?", 
+            snip.title, snip.code, snip.snippet_id).then(() => {
+                return this.getSnippet(snip.snippet_id)
+        });
+    };
+
     this.deleteSnippet = function(snip) {
         let sql = "DELETE FROM snippets WHERE snippet_id=?";
         return update(db, sql, snip.snippet_id)

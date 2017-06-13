@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom'; 
-import { SocketDataWrapper, AdminPollSocketData } from "./data_socket_wrapper"
+import { AdminSnippetSocketData, AdminPollSocketData } from "./data_socket_wrapper"
 
 var classNames = require('classnames');
 
@@ -10,7 +10,7 @@ export default class Presenter extends React.Component {
         this.socket = props.socket
         this.state = {snippets: [], polls: []};
         this.poll_wrapper = new AdminPollSocketData(this.socket, (x) => this.setPolls(x))
-        this.snip_wrapper = new SocketDataWrapper("snippet", this.socket, (x) => this.setSnippets(x))
+        this.snip_wrapper = new AdminSnippetSocketData(this.socket, (x) => this.setSnippets(x))
     }
     setPolls(polls) {
         this.setState({polls: polls})
@@ -35,28 +35,63 @@ export default class Presenter extends React.Component {
                 <PollList polls={this.state.polls} connector={this.poll_wrapper}/>
             </div><div className="col-6">
                 <h2>Snippets</h2>
-                <SnippetList snippets={this.state.snippets} socket={this.socket}/>
+                <SnippetList snippets={this.state.snippets} connector={this.snip_wrapper}/>
             </div>
         </div>
     }
 }
 
-function SnippetList(props) {
-    let socket = props.socket;
-    return <div><NewSnippetForm socket={socket}/>
-        {props.snippets.map((row) => {
-          return <Snippet key={row.snippet_id} snippet={row} socket={socket} />
-        })}
-    </div>
+class SnippetList extends React.Component {
+    constructor(props) {
+        super(props)
+        this.state = {edit_id: null}
+        this.renderViewOrForm = this.renderViewOrForm.bind(this)
+        this.handleEdit = this.handleEdit.bind(this)
+        this.handleStatusChange = this.handleStatusChange.bind(this)
+    }
+    handleEdit(snip) {
+        this.setState({edit_id: snip.snippet_id}) 
+    }
+
+    handleStatusChange() {
+        this.setState({edit_id: null}) 
+    }
+
+    renderViewOrForm(item, connector) {
+        if (item.snippet_id == this.state.edit_id) {
+          return <SnippetForm key={item.snippet_id} snippet={item} onStatusChange={this.handleStatusChange} 
+            connector={connector} action="edit"/>
+        } else {
+          return <Snippet key={item.snippet_id} snippet={item} onEdit={this.handleEdit} connector={connector}/>
+        }
+    }
+
+    render() {
+        let connector = this.props.connector
+        let snips = this.props.snippets
+        return <div><SnippetForm action="new" connector={connector}/>{snips.map((row) =>  {
+            return this.renderViewOrForm(row, connector)
+        })}</div>
+    }
 }
 
-class NewSnippetForm extends React.Component {
+class SnippetForm extends React.Component {
     constructor(props) {
         super(props);
-        this.socket = props.socket;
-        this.state = {title: "", code: ""};
-        this.handleInputChange = this.handleInputChange.bind(this);
-        this.handleSubmit = this.handleSubmit.bind(this);
+        this.connector = props.connector;
+        this.orig_state = props.snippet || {title: "", code: ""}
+        this.state = Object.assign(this.orig_state, {action: props.action || "new"})
+        this.handleInputChange = this.handleInputChange.bind(this)
+        this.handleStatusChange = this.handleStatusChange.bind(this)
+        this.handleSubmit = this.handleSubmit.bind(this)
+        this.handleCancel = this.handleCancel.bind(this)
+        this.handleUpdate = this.handleUpdate.bind(this)
+        this.handleAdd = this.handleAdd.bind(this)
+    }
+    handleStatusChange() {
+        if (this.props.onStatusChange) {
+            this.props.onStatusChange("done")
+        }
     }
 
     handleInputChange(e) {
@@ -66,72 +101,84 @@ class NewSnippetForm extends React.Component {
 
         this.setState({[name]: value});
     }
+
+    handleCancel() {
+        this.handleStatusChange()
+    }
+    handleUpdate() {
+        this.connector.requestUpdate(this.state)
+        this.handleStatusChange()
+    }
+    handleAdd() {
+        this.connector.requestAdd(this.state)
+        this.setState({title: "", code: ""})
+        this.handleStatusChange()
+    }
+
     handleSubmit(e) {
-        e.preventDefault();
-        this.socket.emit("add snippet", this.state)
-        this.setState({title: "", code: ""});
+        e.preventDefault()
     }
 
     render() {
-        return <form onSubmit={this.handleSubmit}>
-        <input name="title" value={this.state.title} 
-            onChange={this.handleInputChange}
-            style={{width: "100%"}} />
-        <textarea name="code" value={this.state.code} 
-            onChange={this.handleInputChange}
-            style={{width: "100%", height: "200px"}} />
-        <button style={{width: "100%"}} className="btn btn-primary">Save</button>
-        </form>;
+        let actions = null
+        if (this.state.action=="new") {
+            actions = <button type="button" style={{width: "100%"}} 
+                className="btn btn-primary" onClick={this.handleAdd}>Save</button>
+        } else if (this.state.action=="edit") {
+            actions = [<button type="button" style={{width: "50%"}} className="btn btn-primary" 
+                key="save" onClick={this.handleUpdate}>Save</button>, 
+                <button type="button" style={{width: "50%"}} className="btn" 
+                onClick={this.handleCancel} key="cancel">Cancel</button>]
+        }
+        return <div className="card"><form onSubmit={this.handleSubmit}>
+            <div className="card-header">
+                <input name="title" value={this.state.title} 
+                    onChange={this.handleInputChange}
+                    style={{width: "100%"}} />
+            </div>
+            <div className="card-block">
+                <textarea name="code" value={this.state.code} 
+                    onChange={this.handleInputChange}
+                    style={{width: "100%", height: "200px"}} />
+            </div>
+            <div className="card-block">{actions}</div> 
+        </form></div>
     }
 }
 
 class Snippet extends React.Component {
     constructor(props) {
         super(props);
-        var snippet = props.snippet;
-        this.state = snippet
-        this.socket = props.socket;
-        this.handleSubmit = this.handleSubmit.bind(this);
-        
+        this.connector = props.connector;
         this.openSnippet = this.openSnippet.bind(this);
         this.closeSnippet = this.closeSnippet.bind(this);
+        this.editSnippet = this.editSnippet.bind(this);
         this.removeSnippet = this.removeSnippet.bind(this);
-        this.handleSnippetUpdate = this.handleSnippetUpdate.bind(this);
-        this.socket_events = {
-            "open snippet": this.handleSnippetUpdate,
-            "close snippet": this.handleSnippetUpdate
-        }
+        this.handleSubmit = this.handleSubmit.bind(this);
     }
-    componentDidMount() {
-        Object.keys(this.socket_events).map((k)=> {
-            this.socket.on(k, this.socket_events[k])
-        })
+
+    openSnippet(e) {
+        e.preventDefault()
+        this.connector.requestOpenSnippet(this.props.snippet);
     }
-    componentWillUnmount() {
-        Object.keys(this.socket_events).map((k)=> {
-            this.socket.off(k, this.socket_events[k])
-        })
+    closeSnippet(e) {
+        e.preventDefault()
+        this.connector.requestCloseSnippet(this.props.snippet);
     }
-    handleSnippetUpdate(snip) {
-        if (this.state.snippet_id == snip.snippet_id) {
-            this.setState(snip)
-        }
+    removeSnippet(e) {
+        e.preventDefault()
+        this.connector.requestDelete(this.props.snippet);
     }
-    openSnippet() {
-         this.socket.emit("open snippet", this.state);
-    }
-    closeSnippet() {
-        this.socket.emit("close snippet", this.state);
-    }
-    removeSnippet() {
-        this.socket.emit("remove snippet", this.state) 
+    editSnippet(e) {
+        e.preventDefault()
+        this.props.onEdit(this.props.snippet)
     }
     handleSubmit(e) {
         e.preventDefault();
     }
     render() {
         let button = null;
-        let snip = this.state;
+        let snip = this.props.snippet
         if (snip.status == 0) {
             button = <button onClick={this.openSnippet}>Open</button>
         } else if(snip.status ==1) {
@@ -140,9 +187,12 @@ class Snippet extends React.Component {
             button = <button onClick={this.openSnippet}>Re-open</button>
         }
         return <div className="card"><form onSubmit={this.handleSubmit}>
-            <div className={classNames("card-header", {"open-poll": this.state.status==1})}>{this.state.title}</div>
-            <div className="card-block"><pre>{this.state.code}</pre></div>
-            <div className="card-block">{button} <button onClick={this.removeSnippet}>Delete</button></div>
+            <div className={classNames("card-header", {"open-poll": snip.status==1})}>{snip.title}</div>
+            <div className="card-block"><pre>{snip.code}</pre></div>
+            <div className="card-block">{button}&nbsp; 
+                <button onClick={this.editSnippet}>Edit</button>&nbsp;
+                <button onClick={this.removeSnippet}>Delete</button>&nbsp;
+            </div>
             </form></div>; 
     }    
     

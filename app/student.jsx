@@ -12,6 +12,7 @@ export default class Student extends React.Component {
             "open poll": (poll) => this.newPoll(poll),
             "close poll": (poll) => this.closePoll(poll),
             "remove poll": (poll) => this.closePoll(poll),
+            "update poll": (poll) => this.updatePoll(poll),
             "poll list": (polls) => this.refreshPolls(polls),
             "snippet list": (snips) => this.refreshSnippets(snips),
             "open snippet": (snip) => this.openSnippet(snip),
@@ -33,6 +34,17 @@ export default class Student extends React.Component {
     closePoll(poll) {
         this.setState({
             polls: this.state.polls.filter((p)=>p.poll_id != poll.poll_id)
+        })
+    }
+    updatePoll(poll) {
+        this.setState({
+            polls: this.state.polls.map(p=>{
+                if(p.poll_id == poll.poll_id) {
+                    return Object.assign(p, poll)
+                } else {
+                    return p
+                }
+            })
         })
     }
     refreshSnippets(snips) {

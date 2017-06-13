@@ -14813,7 +14813,7 @@ var Presenter = function (_React$Component) {
         _this.poll_wrapper = new _data_socket_wrapper.AdminPollSocketData(_this.socket, function (x) {
             return _this.setPolls(x);
         });
-        _this.snip_wrapper = new _data_socket_wrapper.SocketDataWrapper("snippet", _this.socket, function (x) {
+        _this.snip_wrapper = new _data_socket_wrapper.AdminSnippetSocketData(_this.socket, function (x) {
             return _this.setSnippets(x);
         });
         return _this;
@@ -14867,7 +14867,7 @@ var Presenter = function (_React$Component) {
                         null,
                         'Snippets'
                     ),
-                    _react2.default.createElement(SnippetList, { snippets: this.state.snippets, socket: this.socket })
+                    _react2.default.createElement(SnippetList, { snippets: this.state.snippets, connector: this.snip_wrapper })
                 )
             );
         }
@@ -14878,35 +14878,90 @@ var Presenter = function (_React$Component) {
 
 exports.default = Presenter;
 
+var SnippetList = function (_React$Component2) {
+    _inherits(SnippetList, _React$Component2);
 
-function SnippetList(props) {
-    var socket = props.socket;
-    return _react2.default.createElement(
-        'div',
-        null,
-        _react2.default.createElement(NewSnippetForm, { socket: socket }),
-        props.snippets.map(function (row) {
-            return _react2.default.createElement(Snippet, { key: row.snippet_id, snippet: row, socket: socket });
-        })
-    );
-}
+    function SnippetList(props) {
+        _classCallCheck(this, SnippetList);
 
-var NewSnippetForm = function (_React$Component2) {
-    _inherits(NewSnippetForm, _React$Component2);
+        var _this2 = _possibleConstructorReturn(this, (SnippetList.__proto__ || Object.getPrototypeOf(SnippetList)).call(this, props));
 
-    function NewSnippetForm(props) {
-        _classCallCheck(this, NewSnippetForm);
-
-        var _this2 = _possibleConstructorReturn(this, (NewSnippetForm.__proto__ || Object.getPrototypeOf(NewSnippetForm)).call(this, props));
-
-        _this2.socket = props.socket;
-        _this2.state = { title: "", code: "" };
-        _this2.handleInputChange = _this2.handleInputChange.bind(_this2);
-        _this2.handleSubmit = _this2.handleSubmit.bind(_this2);
+        _this2.state = { edit_id: null };
+        _this2.renderViewOrForm = _this2.renderViewOrForm.bind(_this2);
+        _this2.handleEdit = _this2.handleEdit.bind(_this2);
+        _this2.handleStatusChange = _this2.handleStatusChange.bind(_this2);
         return _this2;
     }
 
-    _createClass(NewSnippetForm, [{
+    _createClass(SnippetList, [{
+        key: 'handleEdit',
+        value: function handleEdit(snip) {
+            this.setState({ edit_id: snip.snippet_id });
+        }
+    }, {
+        key: 'handleStatusChange',
+        value: function handleStatusChange() {
+            this.setState({ edit_id: null });
+        }
+    }, {
+        key: 'renderViewOrForm',
+        value: function renderViewOrForm(item, connector) {
+            if (item.snippet_id == this.state.edit_id) {
+                return _react2.default.createElement(SnippetForm, { key: item.snippet_id, snippet: item, onStatusChange: this.handleStatusChange,
+                    connector: connector, action: 'edit' });
+            } else {
+                return _react2.default.createElement(Snippet, { key: item.snippet_id, snippet: item, onEdit: this.handleEdit, connector: connector });
+            }
+        }
+    }, {
+        key: 'render',
+        value: function render() {
+            var _this3 = this;
+
+            var connector = this.props.connector;
+            var snips = this.props.snippets;
+            return _react2.default.createElement(
+                'div',
+                null,
+                _react2.default.createElement(SnippetForm, { action: 'new', connector: connector }),
+                snips.map(function (row) {
+                    return _this3.renderViewOrForm(row, connector);
+                })
+            );
+        }
+    }]);
+
+    return SnippetList;
+}(_react2.default.Component);
+
+var SnippetForm = function (_React$Component3) {
+    _inherits(SnippetForm, _React$Component3);
+
+    function SnippetForm(props) {
+        _classCallCheck(this, SnippetForm);
+
+        var _this4 = _possibleConstructorReturn(this, (SnippetForm.__proto__ || Object.getPrototypeOf(SnippetForm)).call(this, props));
+
+        _this4.connector = props.connector;
+        _this4.orig_state = props.snippet || { title: "", code: "" };
+        _this4.state = Object.assign(_this4.orig_state, { action: props.action || "new" });
+        _this4.handleInputChange = _this4.handleInputChange.bind(_this4);
+        _this4.handleStatusChange = _this4.handleStatusChange.bind(_this4);
+        _this4.handleSubmit = _this4.handleSubmit.bind(_this4);
+        _this4.handleCancel = _this4.handleCancel.bind(_this4);
+        _this4.handleUpdate = _this4.handleUpdate.bind(_this4);
+        _this4.handleAdd = _this4.handleAdd.bind(_this4);
+        return _this4;
+    }
+
+    _createClass(SnippetForm, [{
+        key: 'handleStatusChange',
+        value: function handleStatusChange() {
+            if (this.props.onStatusChange) {
+                this.props.onStatusChange("done");
+            }
+        }
+    }, {
         key: 'handleInputChange',
         value: function handleInputChange(e) {
             var target = e.target;
@@ -14916,99 +14971,125 @@ var NewSnippetForm = function (_React$Component2) {
             this.setState(_defineProperty({}, name, value));
         }
     }, {
+        key: 'handleCancel',
+        value: function handleCancel() {
+            this.handleStatusChange();
+        }
+    }, {
+        key: 'handleUpdate',
+        value: function handleUpdate() {
+            this.connector.requestUpdate(this.state);
+            this.handleStatusChange();
+        }
+    }, {
+        key: 'handleAdd',
+        value: function handleAdd() {
+            this.connector.requestAdd(this.state);
+            this.setState({ title: "", code: "" });
+            this.handleStatusChange();
+        }
+    }, {
         key: 'handleSubmit',
         value: function handleSubmit(e) {
             e.preventDefault();
-            this.socket.emit("add snippet", this.state);
-            this.setState({ title: "", code: "" });
         }
     }, {
         key: 'render',
         value: function render() {
-            return _react2.default.createElement(
-                'form',
-                { onSubmit: this.handleSubmit },
-                _react2.default.createElement('input', { name: 'title', value: this.state.title,
-                    onChange: this.handleInputChange,
-                    style: { width: "100%" } }),
-                _react2.default.createElement('textarea', { name: 'code', value: this.state.code,
-                    onChange: this.handleInputChange,
-                    style: { width: "100%", height: "200px" } }),
-                _react2.default.createElement(
+            var actions = null;
+            if (this.state.action == "new") {
+                actions = _react2.default.createElement(
                     'button',
-                    { style: { width: "100%" }, className: 'btn btn-primary' },
+                    { type: 'button', style: { width: "100%" },
+                        className: 'btn btn-primary', onClick: this.handleAdd },
                     'Save'
+                );
+            } else if (this.state.action == "edit") {
+                actions = [_react2.default.createElement(
+                    'button',
+                    { type: 'button', style: { width: "50%" }, className: 'btn btn-primary',
+                        key: 'save', onClick: this.handleUpdate },
+                    'Save'
+                ), _react2.default.createElement(
+                    'button',
+                    { type: 'button', style: { width: "50%" }, className: 'btn',
+                        onClick: this.handleCancel, key: 'cancel' },
+                    'Cancel'
+                )];
+            }
+            return _react2.default.createElement(
+                'div',
+                { className: 'card' },
+                _react2.default.createElement(
+                    'form',
+                    { onSubmit: this.handleSubmit },
+                    _react2.default.createElement(
+                        'div',
+                        { className: 'card-header' },
+                        _react2.default.createElement('input', { name: 'title', value: this.state.title,
+                            onChange: this.handleInputChange,
+                            style: { width: "100%" } })
+                    ),
+                    _react2.default.createElement(
+                        'div',
+                        { className: 'card-block' },
+                        _react2.default.createElement('textarea', { name: 'code', value: this.state.code,
+                            onChange: this.handleInputChange,
+                            style: { width: "100%", height: "200px" } })
+                    ),
+                    _react2.default.createElement(
+                        'div',
+                        { className: 'card-block' },
+                        actions
+                    )
                 )
             );
         }
     }]);
 
-    return NewSnippetForm;
+    return SnippetForm;
 }(_react2.default.Component);
 
-var Snippet = function (_React$Component3) {
-    _inherits(Snippet, _React$Component3);
+var Snippet = function (_React$Component4) {
+    _inherits(Snippet, _React$Component4);
 
     function Snippet(props) {
         _classCallCheck(this, Snippet);
 
-        var _this3 = _possibleConstructorReturn(this, (Snippet.__proto__ || Object.getPrototypeOf(Snippet)).call(this, props));
+        var _this5 = _possibleConstructorReturn(this, (Snippet.__proto__ || Object.getPrototypeOf(Snippet)).call(this, props));
 
-        var snippet = props.snippet;
-        _this3.state = snippet;
-        _this3.socket = props.socket;
-        _this3.handleSubmit = _this3.handleSubmit.bind(_this3);
-
-        _this3.openSnippet = _this3.openSnippet.bind(_this3);
-        _this3.closeSnippet = _this3.closeSnippet.bind(_this3);
-        _this3.removeSnippet = _this3.removeSnippet.bind(_this3);
-        _this3.handleSnippetUpdate = _this3.handleSnippetUpdate.bind(_this3);
-        _this3.socket_events = {
-            "open snippet": _this3.handleSnippetUpdate,
-            "close snippet": _this3.handleSnippetUpdate
-        };
-        return _this3;
+        _this5.connector = props.connector;
+        _this5.openSnippet = _this5.openSnippet.bind(_this5);
+        _this5.closeSnippet = _this5.closeSnippet.bind(_this5);
+        _this5.editSnippet = _this5.editSnippet.bind(_this5);
+        _this5.removeSnippet = _this5.removeSnippet.bind(_this5);
+        _this5.handleSubmit = _this5.handleSubmit.bind(_this5);
+        return _this5;
     }
 
     _createClass(Snippet, [{
-        key: 'componentDidMount',
-        value: function componentDidMount() {
-            var _this4 = this;
-
-            Object.keys(this.socket_events).map(function (k) {
-                _this4.socket.on(k, _this4.socket_events[k]);
-            });
-        }
-    }, {
-        key: 'componentWillUnmount',
-        value: function componentWillUnmount() {
-            var _this5 = this;
-
-            Object.keys(this.socket_events).map(function (k) {
-                _this5.socket.off(k, _this5.socket_events[k]);
-            });
-        }
-    }, {
-        key: 'handleSnippetUpdate',
-        value: function handleSnippetUpdate(snip) {
-            if (this.state.snippet_id == snip.snippet_id) {
-                this.setState(snip);
-            }
-        }
-    }, {
         key: 'openSnippet',
-        value: function openSnippet() {
-            this.socket.emit("open snippet", this.state);
+        value: function openSnippet(e) {
+            e.preventDefault();
+            this.connector.requestOpenSnippet(this.props.snippet);
         }
     }, {
         key: 'closeSnippet',
-        value: function closeSnippet() {
-            this.socket.emit("close snippet", this.state);
+        value: function closeSnippet(e) {
+            e.preventDefault();
+            this.connector.requestCloseSnippet(this.props.snippet);
         }
     }, {
         key: 'removeSnippet',
-        value: function removeSnippet() {
-            this.socket.emit("remove snippet", this.state);
+        value: function removeSnippet(e) {
+            e.preventDefault();
+            this.connector.requestDelete(this.props.snippet);
+        }
+    }, {
+        key: 'editSnippet',
+        value: function editSnippet(e) {
+            e.preventDefault();
+            this.props.onEdit(this.props.snippet);
         }
     }, {
         key: 'handleSubmit',
@@ -15019,7 +15100,7 @@ var Snippet = function (_React$Component3) {
         key: 'render',
         value: function render() {
             var button = null;
-            var snip = this.state;
+            var snip = this.props.snippet;
             if (snip.status == 0) {
                 button = _react2.default.createElement(
                     'button',
@@ -15047,8 +15128,8 @@ var Snippet = function (_React$Component3) {
                     { onSubmit: this.handleSubmit },
                     _react2.default.createElement(
                         'div',
-                        { className: classNames("card-header", { "open-poll": this.state.status == 1 }) },
-                        this.state.title
+                        { className: classNames("card-header", { "open-poll": snip.status == 1 }) },
+                        snip.title
                     ),
                     _react2.default.createElement(
                         'div',
@@ -15056,19 +15137,26 @@ var Snippet = function (_React$Component3) {
                         _react2.default.createElement(
                             'pre',
                             null,
-                            this.state.code
+                            snip.code
                         )
                     ),
                     _react2.default.createElement(
                         'div',
                         { className: 'card-block' },
                         button,
-                        ' ',
+                        '\xA0',
+                        _react2.default.createElement(
+                            'button',
+                            { onClick: this.editSnippet },
+                            'Edit'
+                        ),
+                        '\xA0',
                         _react2.default.createElement(
                             'button',
                             { onClick: this.removeSnippet },
                             'Delete'
-                        )
+                        ),
+                        '\xA0'
                     )
                 )
             );
@@ -15078,8 +15166,8 @@ var Snippet = function (_React$Component3) {
     return Snippet;
 }(_react2.default.Component);
 
-var PollList = function (_React$Component4) {
-    _inherits(PollList, _React$Component4);
+var PollList = function (_React$Component5) {
+    _inherits(PollList, _React$Component5);
 
     function PollList(props) {
         _classCallCheck(this, PollList);
@@ -15134,8 +15222,8 @@ var PollList = function (_React$Component4) {
     return PollList;
 }(_react2.default.Component);
 
-var PollForm = function (_React$Component5) {
-    _inherits(PollForm, _React$Component5);
+var PollForm = function (_React$Component6) {
+    _inherits(PollForm, _React$Component6);
 
     function PollForm(props) {
         _classCallCheck(this, PollForm);
@@ -15277,8 +15365,8 @@ var PollForm = function (_React$Component5) {
     return PollForm;
 }(_react2.default.Component);
 
-var Poll = function (_React$Component6) {
-    _inherits(Poll, _React$Component6);
+var Poll = function (_React$Component7) {
+    _inherits(Poll, _React$Component7);
 
     function Poll(props) {
         _classCallCheck(this, Poll);
@@ -15870,6 +15958,9 @@ var Student = function (_React$Component) {
             "remove poll": function removePoll(poll) {
                 return _this.closePoll(poll);
             },
+            "update poll": function updatePoll(poll) {
+                return _this.updatePoll(poll);
+            },
             "poll list": function pollList(polls) {
                 return _this.refreshPolls(polls);
             },
@@ -15914,6 +16005,19 @@ var Student = function (_React$Component) {
             this.setState({
                 polls: this.state.polls.filter(function (p) {
                     return p.poll_id != poll.poll_id;
+                })
+            });
+        }
+    }, {
+        key: 'updatePoll',
+        value: function updatePoll(poll) {
+            this.setState({
+                polls: this.state.polls.map(function (p) {
+                    if (p.poll_id == poll.poll_id) {
+                        return Object.assign(p, poll);
+                    } else {
+                        return p;
+                    }
                 })
             });
         }
@@ -16386,7 +16490,6 @@ var SocketDataWrapper = exports.SocketDataWrapper = function () {
         var _socket_events;
 
         var onchange = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
-        var options = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
 
         _classCallCheck(this, SocketDataWrapper);
 
@@ -16508,11 +16611,10 @@ var AdminPollSocketData = exports.AdminPollSocketData = function (_SocketDataWra
 
     function AdminPollSocketData(socket) {
         var onchange = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
-        var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
 
         _classCallCheck(this, AdminPollSocketData);
 
-        var _this5 = _possibleConstructorReturn(this, (AdminPollSocketData.__proto__ || Object.getPrototypeOf(AdminPollSocketData)).call(this, "poll", socket, onchange, options));
+        var _this5 = _possibleConstructorReturn(this, (AdminPollSocketData.__proto__ || Object.getPrototypeOf(AdminPollSocketData)).call(this, "poll", socket, onchange));
 
         _this5.requestClosePoll = _this5.requestClosePoll.bind(_this5);
         _this5.requestOpenPoll = _this5.requestOpenPoll.bind(_this5);
@@ -16558,6 +16660,44 @@ var AdminPollSocketData = exports.AdminPollSocketData = function (_SocketDataWra
     }]);
 
     return AdminPollSocketData;
+}(SocketDataWrapper);
+
+var AdminSnippetSocketData = exports.AdminSnippetSocketData = function (_SocketDataWrapper2) {
+    _inherits(AdminSnippetSocketData, _SocketDataWrapper2);
+
+    function AdminSnippetSocketData(socket) {
+        var onchange = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+
+        _classCallCheck(this, AdminSnippetSocketData);
+
+        var _this7 = _possibleConstructorReturn(this, (AdminSnippetSocketData.__proto__ || Object.getPrototypeOf(AdminSnippetSocketData)).call(this, "snippet", socket, onchange));
+
+        _this7.requestOpenSnippet = _this7.requestOpenSnippet.bind(_this7);
+        _this7.requestCloseSnippet = _this7.requestCloseSnippet.bind(_this7);
+        _this7.message_names = Object.assign(_this7.message_names, {
+            open: "open snippet",
+            close: "close snippet"
+        });
+        _this7.socket_events = Object.assign(_this7.socket_events, {
+            "open snippet": _this7.handleUpdate,
+            "close snippet": _this7.handleUpdate
+        });
+        return _this7;
+    }
+
+    _createClass(AdminSnippetSocketData, [{
+        key: "requestOpenSnippet",
+        value: function requestOpenSnippet(item) {
+            this.request("open", item);
+        }
+    }, {
+        key: "requestCloseSnippet",
+        value: function requestCloseSnippet(item) {
+            this.request("close", item);
+        }
+    }]);
+
+    return AdminSnippetSocketData;
 }(SocketDataWrapper);
 
 /***/ }),

@@ -1,6 +1,6 @@
 
 export class SocketDataWrapper {
-    constructor(type, socket, onchange=null, options={}) {
+    constructor(type, socket, onchange=null) {
         this.type = type
         this.idfield = type + "_id"
         this.socket = socket
@@ -85,8 +85,8 @@ export class SocketDataWrapper {
 }
 
 export class AdminPollSocketData extends SocketDataWrapper {
-    constructor(socket, onchange=null, options={}) {
-        super("poll", socket, onchange, options)
+    constructor(socket, onchange=null) {
+        super("poll", socket, onchange)
         this.requestClosePoll = this.requestClosePoll.bind(this)
         this.requestOpenPoll = this.requestOpenPoll.bind(this)
         this.handlePollResponse = this.handlePollResponse.bind(this)
@@ -117,5 +117,27 @@ export class AdminPollSocketData extends SocketDataWrapper {
             })
             this.handleOnChange()
         }
+    }
+}
+
+export class AdminSnippetSocketData extends SocketDataWrapper {
+    constructor(socket, onchange=null) {
+        super("snippet", socket, onchange)
+        this.requestOpenSnippet = this.requestOpenSnippet.bind(this)
+        this.requestCloseSnippet = this.requestCloseSnippet.bind(this)
+        this.message_names = Object.assign(this.message_names, {
+            open: "open snippet",
+            close: "close snippet",
+        })
+        this.socket_events = Object.assign(this.socket_events, {
+            "open snippet": this.handleUpdate,
+            "close snippet": this.handleUpdate,
+        })
+    }
+    requestOpenSnippet(item) {
+        this.request("open", item)
+    }
+    requestCloseSnippet(item) {
+        this.request("close", item)
     }
 }
