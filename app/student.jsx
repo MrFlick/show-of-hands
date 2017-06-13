@@ -17,7 +17,8 @@ export default class Student extends React.Component {
             "snippet list": (snips) => this.refreshSnippets(snips),
             "open snippet": (snip) => this.openSnippet(snip),
             "close snippet": (snip) => this.closeSnippet(snip),
-            "remove snippet": (snip) => this.closeSnippet(snip)
+            "remove snippet": (snip) => this.closeSnippet(snip),
+            "update snippet": (poll) => this.updateSnippet(poll),
         }
     }
     initClient(client) {
@@ -58,6 +59,17 @@ export default class Student extends React.Component {
     closeSnippet(snip) {
         this.setState({
             snippets: this.state.snippets.filter((s)=>s.snippet_id != snip.snippet_id)
+        })
+    }
+    updateSnippet(snip) {
+        this.setState({
+            snippets: this.state.snippets.map( s  => {
+                if(s.snippet_id == snip.snippet_id) {
+                    return Object.assign(s, snip)
+                } else {
+                    return s
+                }
+            })
         })
     }
     refresh() {
