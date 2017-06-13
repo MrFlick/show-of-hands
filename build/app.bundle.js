@@ -12958,18 +12958,21 @@ var TransitionGroup = function (_React$Component) {
 
     var _this = _possibleConstructorReturn(this, _React$Component.call(this, props, context));
 
-    _this.performAppear = function (key, component) {
+    _this.performAppear = function (key) {
       _this.currentlyTransitioningKeys[key] = true;
 
+      var component = _this.childRefs[key];
+
       if (component.componentWillAppear) {
-        component.componentWillAppear(_this._handleDoneAppearing.bind(_this, key, component));
+        component.componentWillAppear(_this._handleDoneAppearing.bind(_this, key));
       } else {
-        _this._handleDoneAppearing(key, component);
+        _this._handleDoneAppearing(key);
       }
     };
 
-    _this._handleDoneAppearing = function (key, component) {
-      if (component.componentDidAppear) {
+    _this._handleDoneAppearing = function (key) {
+      var component = _this.childRefs[key];
+      if (component && component.componentDidAppear) {
         component.componentDidAppear();
       }
 
@@ -12979,22 +12982,25 @@ var TransitionGroup = function (_React$Component) {
 
       if (!currentChildMapping || !currentChildMapping.hasOwnProperty(key)) {
         // This was removed before it had fully appeared. Remove it.
-        _this.performLeave(key, component);
+        _this.performLeave(key);
       }
     };
 
-    _this.performEnter = function (key, component) {
+    _this.performEnter = function (key) {
       _this.currentlyTransitioningKeys[key] = true;
 
+      var component = _this.childRefs[key];
+
       if (component.componentWillEnter) {
-        component.componentWillEnter(_this._handleDoneEntering.bind(_this, key, component));
+        component.componentWillEnter(_this._handleDoneEntering.bind(_this, key));
       } else {
-        _this._handleDoneEntering(key, component);
+        _this._handleDoneEntering(key);
       }
     };
 
-    _this._handleDoneEntering = function (key, component) {
-      if (component.componentDidEnter) {
+    _this._handleDoneEntering = function (key) {
+      var component = _this.childRefs[key];
+      if (component && component.componentDidEnter) {
         component.componentDidEnter();
       }
 
@@ -13004,25 +13010,28 @@ var TransitionGroup = function (_React$Component) {
 
       if (!currentChildMapping || !currentChildMapping.hasOwnProperty(key)) {
         // This was removed before it had fully entered. Remove it.
-        _this.performLeave(key, component);
+        _this.performLeave(key);
       }
     };
 
-    _this.performLeave = function (key, component) {
+    _this.performLeave = function (key) {
       _this.currentlyTransitioningKeys[key] = true;
 
+      var component = _this.childRefs[key];
       if (component.componentWillLeave) {
-        component.componentWillLeave(_this._handleDoneLeaving.bind(_this, key, component));
+        component.componentWillLeave(_this._handleDoneLeaving.bind(_this, key));
       } else {
         // Note that this is somewhat dangerous b/c it calls setState()
         // again, effectively mutating the component before all the work
         // is done.
-        _this._handleDoneLeaving(key, component);
+        _this._handleDoneLeaving(key);
       }
     };
 
-    _this._handleDoneLeaving = function (key, component) {
-      if (component.componentDidLeave) {
+    _this._handleDoneLeaving = function (key) {
+      var component = _this.childRefs[key];
+
+      if (component && component.componentDidLeave) {
         component.componentDidLeave();
       }
 
@@ -13032,7 +13041,7 @@ var TransitionGroup = function (_React$Component) {
 
       if (currentChildMapping && currentChildMapping.hasOwnProperty(key)) {
         // This entered again before it fully left. Add it again.
-        _this.keysToEnter.push(key);
+        _this.performEnter(key);
       } else {
         _this.setState(function (state) {
           var newChildren = _extends({}, state.children);
@@ -13060,7 +13069,7 @@ var TransitionGroup = function (_React$Component) {
     var initialChildMapping = this.state.children;
     for (var key in initialChildMapping) {
       if (initialChildMapping[key]) {
-        this.performAppear(key, this.childRefs[key]);
+        this.performAppear(key);
       }
     }
   };
@@ -13091,35 +13100,29 @@ var TransitionGroup = function (_React$Component) {
   };
 
   TransitionGroup.prototype.componentDidUpdate = function componentDidUpdate() {
-    var _this2 = this;
-
     var keysToEnter = this.keysToEnter;
     this.keysToEnter = [];
-    keysToEnter.forEach(function (key) {
-      return _this2.performEnter(key, _this2.childRefs[key]);
-    });
+    keysToEnter.forEach(this.performEnter);
 
     var keysToLeave = this.keysToLeave;
     this.keysToLeave = [];
-    keysToLeave.forEach(function (key) {
-      return _this2.performLeave(key, _this2.childRefs[key]);
-    });
+    keysToLeave.forEach(this.performLeave);
   };
 
   TransitionGroup.prototype.render = function render() {
-    var _this3 = this;
+    var _this2 = this;
 
     // TODO: we could get rid of the need for the wrapper node
     // by cloning a single child
     var childrenToRender = [];
 
     var _loop = function _loop(key) {
-      var child = _this3.state.children[key];
+      var child = _this2.state.children[key];
       if (child) {
         var isCallbackRef = typeof child.ref !== 'string';
-        var factoryChild = _this3.props.childFactory(child);
+        var factoryChild = _this2.props.childFactory(child);
         var ref = function ref(r) {
-          _this3.childRefs[key] = r;
+          _this2.childRefs[key] = r;
         };
 
         process.env.NODE_ENV !== 'production' ? (0, _warning2.default)(isCallbackRef, 'string refs are not supported on children of TransitionGroup and will be ignored. ' + 'Please use a callback ref instead: https://facebook.github.io/react/docs/refs-and-the-dom.html#the-ref-callback-attribute') : void 0;
@@ -13169,7 +13172,7 @@ var TransitionGroup = function (_React$Component) {
 TransitionGroup.displayName = 'TransitionGroup';
 
 
-TransitionGroup.propTypes = process.env.NODE_ENV !== "production" ? propTypes : {};
+TransitionGroup.propTypes = propTypes;
 TransitionGroup.defaultProps = defaultProps;
 
 exports.default = TransitionGroup;
@@ -14807,7 +14810,7 @@ var Presenter = function (_React$Component) {
 
         _this.socket = props.socket;
         _this.state = { snippets: [], polls: [] };
-        _this.poll_wrapper = new _data_socket_wrapper.SocketDataWrapper("poll", _this.socket, function (x) {
+        _this.poll_wrapper = new _data_socket_wrapper.AdminPollSocketData(_this.socket, function (x) {
             return _this.setPolls(x);
         });
         _this.snip_wrapper = new _data_socket_wrapper.SocketDataWrapper("snippet", _this.socket, function (x) {
@@ -14822,9 +14825,9 @@ var Presenter = function (_React$Component) {
             this.setState({ polls: polls });
         }
     }, {
-        key: 'setSnippetsPolls',
-        value: function setSnippetsPolls(polls) {
-            this.setState({ snippets: polls });
+        key: 'setSnippets',
+        value: function setSnippets(snips) {
+            this.setState({ snippets: snips });
         }
     }, {
         key: 'componentDidMount',
@@ -14854,7 +14857,7 @@ var Presenter = function (_React$Component) {
                         null,
                         'Polls'
                     ),
-                    _react2.default.createElement(PollList, { polls: this.state.polls, socket: this.socket })
+                    _react2.default.createElement(PollList, { polls: this.state.polls, connector: this.poll_wrapper })
                 ),
                 _react2.default.createElement(
                     'div',
@@ -15102,12 +15105,12 @@ var PollList = function (_React$Component4) {
         }
     }, {
         key: 'renderViewOrForm',
-        value: function renderViewOrForm(item, socket) {
+        value: function renderViewOrForm(item, connector) {
             if (item.poll_id == this.state.edit_id) {
                 return _react2.default.createElement(PollForm, { key: item.poll_id, poll: item, onStatusChange: this.handleStatusChange,
-                    socket: socket, action: 'edit' });
+                    connector: connector, action: 'edit' });
             } else {
-                return _react2.default.createElement(Poll, { key: item.poll_id, poll: item, onEdit: this.handleEdit, socket: socket });
+                return _react2.default.createElement(Poll, { key: item.poll_id, poll: item, onEdit: this.handleEdit, connector: connector });
             }
         }
     }, {
@@ -15115,14 +15118,14 @@ var PollList = function (_React$Component4) {
         value: function render() {
             var _this7 = this;
 
-            var socket = this.props.socket;
+            var connector = this.props.connector;
             var polls = this.props.polls;
             return _react2.default.createElement(
                 'div',
                 null,
-                _react2.default.createElement(PollForm, { action: 'new', socket: socket }),
+                _react2.default.createElement(PollForm, { action: 'new', connector: connector }),
                 polls.map(function (row) {
-                    return _this7.renderViewOrForm(row, socket);
+                    return _this7.renderViewOrForm(row, connector);
                 })
             );
         }
@@ -15139,7 +15142,7 @@ var PollForm = function (_React$Component5) {
 
         var _this8 = _possibleConstructorReturn(this, (PollForm.__proto__ || Object.getPrototypeOf(PollForm)).call(this, props));
 
-        _this8.socket = props.socket;
+        _this8.connector = props.connector;
         _this8.orig_state = props.poll || { title: "untitled",
             type: "text",
             options: ""
@@ -15181,13 +15184,13 @@ var PollForm = function (_React$Component5) {
     }, {
         key: 'handleUpdate',
         value: function handleUpdate() {
-            this.socket.emit("update poll", this.state);
+            this.connector.requestUpdate(this.state);
             this.handleStatusChange();
         }
     }, {
         key: 'handleAdd',
         value: function handleAdd() {
-            this.socket.emit("add poll", this.state);
+            this.connector.requestAdd(this.state);
             this.setState({ title: "untitled", type: "text", options: "" });
             this.handleStatusChange();
         }
@@ -15282,80 +15285,38 @@ var Poll = function (_React$Component6) {
 
         var _this9 = _possibleConstructorReturn(this, (Poll.__proto__ || Object.getPrototypeOf(Poll)).call(this, props));
 
-        var poll = props.poll;
-        _this9.state = poll;
-        _this9.socket = props.socket;
+        _this9.connector = props.connector;
         _this9.openPoll = _this9.openPoll.bind(_this9);
         _this9.closePoll = _this9.closePoll.bind(_this9);
         _this9.editPoll = _this9.editPoll.bind(_this9);
         _this9.removePoll = _this9.removePoll.bind(_this9);
         _this9.handleSubmit = _this9.handleSubmit.bind(_this9);
-        _this9.handlePollUpdate = _this9.handlePollUpdate.bind(_this9);
-        _this9.handlePollResponse = _this9.handlePollResponse.bind(_this9);
-        _this9.socket_events = {
-            "open poll": _this9.handlePollUpdate,
-            "close poll": _this9.handlePollUpdate,
-            "update poll": _this9.handlePollUpdate,
-            "new poll response": _this9.handlePollResponse
-        };
         return _this9;
     }
 
     _createClass(Poll, [{
-        key: 'componentDidMount',
-        value: function componentDidMount() {
-            var _this10 = this;
-
-            Object.keys(this.socket_events).map(function (k) {
-                _this10.socket.on(k, _this10.socket_events[k]);
-            });
-        }
-    }, {
-        key: 'componentWillUnmount',
-        value: function componentWillUnmount() {
-            var _this11 = this;
-
-            Object.keys(this.socket_events).map(function (k) {
-                _this11.socket.off(k, _this11.socket_events[k]);
-            });
-        }
-    }, {
-        key: 'handlePollResponse',
-        value: function handlePollResponse(poll) {
-            if (this.state.poll_id == poll.poll_id & poll.action == "insert") {
-                this.setState({ response_count: this.state.response_count + 1 });
-            }
-        }
-    }, {
-        key: 'handlePollUpdate',
-        value: function handlePollUpdate(poll) {
-            if (this.state.poll_id == poll.poll_id) {
-                this.setState(poll);
-            }
-        }
-    }, {
         key: 'openPoll',
         value: function openPoll(e) {
             e.preventDefault();
-            this.socket.emit("open poll", this.state);
+            this.connector.requestOpenPoll(this.props.poll);
         }
     }, {
         key: 'closePoll',
         value: function closePoll(e) {
             e.preventDefault();
-            this.socket.emit("close poll", this.state);
-        }
-    }, {
-        key: 'editPoll',
-        value: function editPoll(e) {
-            e.preventDefault();
-            this.props.onEdit(this.state);
+            this.connector.requestClosePoll(this.props.poll);
         }
     }, {
         key: 'removePoll',
         value: function removePoll(e) {
             e.preventDefault();
-            this.socket.emit("remove poll", this.state);
+            this.connector.requestDelete(this.props.poll);
+        }
+    }, {
+        key: 'editPoll',
+        value: function editPoll(e) {
+            e.preventDefault();
+            this.props.onEdit(this.props.poll);
         }
     }, {
         key: 'handleSubmit',
@@ -15366,7 +15327,7 @@ var Poll = function (_React$Component6) {
         key: 'render',
         value: function render() {
             var button = null;
-            var poll = this.state;
+            var poll = this.props.poll;
             if (poll.status == 0) {
                 button = _react2.default.createElement(
                     'button',
@@ -15394,10 +15355,10 @@ var Poll = function (_React$Component6) {
                     { onSubmit: this.handleSubmit },
                     _react2.default.createElement(
                         'div',
-                        { className: classNames("card-header", { "open-poll": this.state.status == 1 }) },
-                        this.state.title,
+                        { className: classNames("card-header", { "open-poll": poll.status == 1 }) },
+                        poll.title,
                         ' (',
-                        this.state.response_count,
+                        poll.response_count,
                         ')'
                     ),
                     _react2.default.createElement(
@@ -16410,6 +16371,10 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
@@ -16440,7 +16405,7 @@ var SocketDataWrapper = exports.SocketDataWrapper = function () {
         this.handleUpdate = this.handleUpdate.bind(this);
         this.handleRemove = this.handleRemove.bind(this);
         this.handleOnChange = this.handleOnChange.bind(this);
-        this.socket_events = (_socket_events = {}, _defineProperty(_socket_events, type + " list", this.handleRefresh), _defineProperty(_socket_events, "new " + type, this.handleNew), _defineProperty(_socket_events, "update " + type, this.handleUpdate), _defineProperty(_socket_events, "remove " + type, this.handleUpdate), _socket_events);
+        this.socket_events = (_socket_events = {}, _defineProperty(_socket_events, type + " list", this.handleRefresh), _defineProperty(_socket_events, "new " + type, this.handleNew), _defineProperty(_socket_events, "update " + type, this.handleUpdate), _defineProperty(_socket_events, "remove " + type, this.handleRemove), _socket_events);
         this.message_names = {
             add: "add " + type,
             update: "update " + type,
@@ -16469,7 +16434,11 @@ var SocketDataWrapper = exports.SocketDataWrapper = function () {
     }, {
         key: "request",
         value: function request(type, item) {
-            this.socket.emit(this.message_names[type], item);
+            if (this.message_names[type]) {
+                this.socket.emit(this.message_names[type], item);
+            } else {
+                throw "Unrecognized message type: " + type;
+            }
         }
     }, {
         key: "requestAdd",
@@ -16505,7 +16474,7 @@ var SocketDataWrapper = exports.SocketDataWrapper = function () {
 
             this.collection = this.collection.map(function (x) {
                 if (x[_this3.idfield] == item[_this3.idfield]) {
-                    return item;
+                    return Object.assign(x, item);
                 } else {
                     return x;
                 }
@@ -16518,7 +16487,7 @@ var SocketDataWrapper = exports.SocketDataWrapper = function () {
             var _this4 = this;
 
             this.collection = this.collection.filter(function (x) {
-                x[_this4.idfield] != item[_this4.idfield];
+                return x[_this4.idfield] !== item[_this4.idfield];
             });
             this.handleOnChange();
         }
@@ -16533,6 +16502,63 @@ var SocketDataWrapper = exports.SocketDataWrapper = function () {
 
     return SocketDataWrapper;
 }();
+
+var AdminPollSocketData = exports.AdminPollSocketData = function (_SocketDataWrapper) {
+    _inherits(AdminPollSocketData, _SocketDataWrapper);
+
+    function AdminPollSocketData(socket) {
+        var onchange = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+        var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
+        _classCallCheck(this, AdminPollSocketData);
+
+        var _this5 = _possibleConstructorReturn(this, (AdminPollSocketData.__proto__ || Object.getPrototypeOf(AdminPollSocketData)).call(this, "poll", socket, onchange, options));
+
+        _this5.requestClosePoll = _this5.requestClosePoll.bind(_this5);
+        _this5.requestOpenPoll = _this5.requestOpenPoll.bind(_this5);
+        _this5.handlePollResponse = _this5.handlePollResponse.bind(_this5);
+        _this5.message_names = Object.assign(_this5.message_names, {
+            open: "open poll",
+            close: "close poll"
+        });
+        _this5.socket_events = Object.assign(_this5.socket_events, {
+            "new poll response": _this5.handlePollResponse,
+            "open poll": _this5.handleUpdate,
+            "close poll": _this5.handleUpdate
+        });
+        return _this5;
+    }
+
+    _createClass(AdminPollSocketData, [{
+        key: "requestOpenPoll",
+        value: function requestOpenPoll(item) {
+            this.request("open", item);
+        }
+    }, {
+        key: "requestClosePoll",
+        value: function requestClosePoll(item) {
+            this.request("close", item);
+        }
+    }, {
+        key: "handlePollResponse",
+        value: function handlePollResponse(item) {
+            var _this6 = this;
+
+            if (item.action == "insert") {
+                this.collection = this.collection.map(function (x) {
+                    if (x[_this6.idfield] == item[_this6.idfield]) {
+                        return Object.assign(x, { "response_count": x.response_count + 1 });
+                    } else {
+                        return x;
+                    }
+                });
+                this.handleOnChange();
+            }
+        }
+    }]);
+
+    return AdminPollSocketData;
+}(SocketDataWrapper);
 
 /***/ }),
 /* 132 */
@@ -32538,7 +32564,7 @@ function pathToRegexp (path, keys, options) {
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-/* WEBPACK VAR INJECTION */(function(process) {
+
 
 exports.__esModule = true;
 
@@ -32627,19 +32653,18 @@ var CSSTransitionGroup = function (_React$Component) {
 CSSTransitionGroup.displayName = 'CSSTransitionGroup';
 
 
-CSSTransitionGroup.propTypes = process.env.NODE_ENV !== "production" ? propTypes : {};
+CSSTransitionGroup.propTypes = propTypes;
 CSSTransitionGroup.defaultProps = defaultProps;
 
 exports.default = CSSTransitionGroup;
 module.exports = exports['default'];
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
 /* 275 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-/* WEBPACK VAR INJECTION */(function(process) {
+
 
 exports.__esModule = true;
 
@@ -32864,11 +32889,10 @@ var CSSTransitionGroupChild = function (_React$Component) {
 CSSTransitionGroupChild.displayName = 'CSSTransitionGroupChild';
 
 
-CSSTransitionGroupChild.propTypes = process.env.NODE_ENV !== "production" ? propTypes : {};
+CSSTransitionGroupChild.propTypes = propTypes;
 
 exports.default = CSSTransitionGroupChild;
 module.exports = exports['default'];
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
 /* 276 */

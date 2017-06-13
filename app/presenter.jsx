@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom'; 
-import { SocketDataWrapper } from "./data_socket_wrapper"
+import { SocketDataWrapper, AdminPollSocketData } from "./data_socket_wrapper"
 
 var classNames = require('classnames');
 
@@ -9,14 +9,14 @@ export default class Presenter extends React.Component {
         super(props)
         this.socket = props.socket
         this.state = {snippets: [], polls: []};
-        this.poll_wrapper = new SocketDataWrapper("poll", this.socket, (x) => this.setPolls(x))
+        this.poll_wrapper = new AdminPollSocketData(this.socket, (x) => this.setPolls(x))
         this.snip_wrapper = new SocketDataWrapper("snippet", this.socket, (x) => this.setSnippets(x))
     }
     setPolls(polls) {
         this.setState({polls: polls})
     }
-    setSnippetsPolls(polls) {
-        this.setState({snippets: polls})
+    setSnippets(snips) {
+        this.setState({snippets: snips})
     }
     componentDidMount() {
         this.poll_wrapper.listenStart()
@@ -32,7 +32,7 @@ export default class Presenter extends React.Component {
         return <div className="row">
             <div className="col-6">
                 <h2>Polls</h2>
-                <PollList polls={this.state.polls} socket={this.socket}/>
+                <PollList polls={this.state.polls} connector={this.poll_wrapper}/>
             </div><div className="col-6">
                 <h2>Snippets</h2>
                 <SnippetList snippets={this.state.snippets} socket={this.socket}/>
@@ -165,20 +165,20 @@ class PollList extends React.Component {
         this.setState({edit_id: null}) 
     }
 
-    renderViewOrForm(item, socket) {
+    renderViewOrForm(item, connector) {
         if (item.poll_id == this.state.edit_id) {
           return <PollForm key={item.poll_id} poll={item} onStatusChange={this.handleStatusChange} 
-            socket={socket} action="edit"/>
+            connector={connector} action="edit"/>
         } else {
-          return <Poll key={item.poll_id} poll={item} onEdit={this.handleEdit} socket={socket}/>
+          return <Poll key={item.poll_id} poll={item} onEdit={this.handleEdit} connector={connector}/>
         }
     }
 
     render() {
-        let socket = this.props.socket
+        let connector = this.props.connector
         let polls = this.props.polls
-        return <div><PollForm action="new" socket={socket}/>{polls.map((row) =>  {
-            return this.renderViewOrForm(row, socket)
+        return <div><PollForm action="new" connector={connector}/>{polls.map((row) =>  {
+            return this.renderViewOrForm(row, connector)
         })}</div>
     }
 }
@@ -186,7 +186,7 @@ class PollList extends React.Component {
 class PollForm extends React.Component {
     constructor(props) {
         super(props);
-        this.socket = props.socket;
+        this.connector = props.connector;
         this.orig_state = props.poll || {title: "untitled", 
             type: "text", 
             options: ""
@@ -219,11 +219,11 @@ class PollForm extends React.Component {
         this.handleStatusChange()
     }
     handleUpdate() {
-        this.socket.emit("update poll", this.state)
+        this.connector.requestUpdate(this.state)
         this.handleStatusChange()
     }
     handleAdd() {
-        this.socket.emit("add poll", this.state)
+        this.connector.requestAdd(this.state)
         this.setState({title: "untitled", type: "text", options:""});
         this.handleStatusChange()
     }
@@ -267,65 +267,35 @@ class PollForm extends React.Component {
 class Poll extends React.Component {
     constructor(props) {
         super(props);
-        var poll = props.poll;
-        this.state = poll
-        this.socket = props.socket;
+        this.connector = props.connector;
         this.openPoll = this.openPoll.bind(this);
         this.closePoll = this.closePoll.bind(this);
         this.editPoll = this.editPoll.bind(this);
         this.removePoll = this.removePoll.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
-        this.handlePollUpdate = this.handlePollUpdate.bind(this);
-        this.handlePollResponse = this.handlePollResponse.bind(this);
-        this.socket_events = {
-            "open poll":  this.handlePollUpdate,
-            "close poll": this.handlePollUpdate,
-            "update poll": this.handlePollUpdate,
-            "new poll response": this.handlePollResponse
-        }
-    }
-    componentDidMount() {
-        Object.keys(this.socket_events).map((k)=> {
-            this.socket.on(k, this.socket_events[k])
-        })
-    }
-    componentWillUnmount() {
-        Object.keys(this.socket_events).map((k)=> {
-            this.socket.off(k, this.socket_events[k])
-        })
-    }
-    handlePollResponse(poll) {
-        if (this.state.poll_id == poll.poll_id & poll.action=="insert") {
-            this.setState({response_count: this.state.response_count +1})
-        }
-    }
-    handlePollUpdate(poll) {
-        if (this.state.poll_id == poll.poll_id) {
-            this.setState(poll)
-        }
     }
     openPoll(e) {
         e.preventDefault()
-        this.socket.emit("open poll", this.state);
+        this.connector.requestOpenPoll(this.props.poll);
     }
     closePoll(e) {
         e.preventDefault()
-        this.socket.emit("close poll", this.state);
-    }
-    editPoll(e) {
-        e.preventDefault()
-        this.props.onEdit(this.state)
+        this.connector.requestClosePoll(this.props.poll);
     }
     removePoll(e) {
         e.preventDefault()
-        this.socket.emit("remove poll", this.state);
+        this.connector.requestDelete(this.props.poll);
+    }
+    editPoll(e) {
+        e.preventDefault()
+        this.props.onEdit(this.props.poll)
     }
     handleSubmit(e) {
         e.preventDefault();
     }
     render() {
         let button = null;
-        let poll = this.state;
+        let poll = this.props.poll;
         if (poll.status == 0) {
             button = <button onClick={this.openPoll}>Open</button>
         } else if(poll.status ==1) {
@@ -334,7 +304,7 @@ class Poll extends React.Component {
             button = <button onClick={this.openPoll}>Re-open</button>
         }
         return <div className="card"><form onSubmit={this.handleSubmit}>
-            <div className={classNames("card-header", {"open-poll": this.state.status==1})}>{this.state.title} ({this.state.response_count})</div>
+            <div className={classNames("card-header", {"open-poll": poll.status==1})}>{poll.title} ({poll.response_count})</div>
             <div className="card-block"><p>{button}&nbsp; 
                 <button onClick={this.editPoll}>Edit</button>&nbsp;
                 <button onClick={this.removePoll}>Delete</button>&nbsp;

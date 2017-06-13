@@ -90,7 +90,7 @@ io.on('connection', function(socket) {
             io.emit("update poll", poll)
         })
     });
-    socket.on("remove poll", function(msg) {
+    socket.on("delete poll", function(msg) {
         data.deletePoll(msg).then(() => {
             io.emit("remove poll", msg)
         })
@@ -129,7 +129,7 @@ io.on('connection', function(socket) {
     socket.on("request poll responses list", function(msg) {
         data.getPollResponses(msg).then((resp) => {
             socket.emit("poll responses list", resp)
-        });
+        })
     });
     socket.on("request prompt list", function() {
         data.getPrompts().then((prompts) => {

@@ -20,7 +20,7 @@ export class SocketDataWrapper {
             [`${type} list`]: this.handleRefresh,
             [`new ${type}`]: this.handleNew,
             [`update ${type}`]: this.handleUpdate,
-            [`remove ${type}`]: this.handleUpdate,
+            [`remove ${type}`]: this.handleRemove,
         }
         this.message_names = {
             add: `add ${type}`,
@@ -39,7 +39,11 @@ export class SocketDataWrapper {
         })
     }
     request(type, item) {
-        this.socket.emit(this.message_names[type], item)
+        if (this.message_names[type]) {
+            this.socket.emit(this.message_names[type], item)
+        } else {
+            throw("Unrecognized message type: " + type)
+        }
     }
     requestAdd(item) {
         this.request("add", item)
@@ -61,7 +65,7 @@ export class SocketDataWrapper {
     handleUpdate(item) {
         this.collection = this.collection.map( x => {
             if (x[this.idfield] == item[this.idfield]) {
-                return item
+                return Object.assign(x, item)
             } else {
                 return x
             }
@@ -70,12 +74,48 @@ export class SocketDataWrapper {
     }
     handleRemove(item) {
         this.collection = this.collection.filter( x => {
-            x[this.idfield] != item[this.idfield]})
+            return x[this.idfield] !== item[this.idfield]})
         this.handleOnChange()
     }
     handleOnChange() {
         if (this.onchange) {
             this.onchange(this.collection)
+        }
+    }
+}
+
+export class AdminPollSocketData extends SocketDataWrapper {
+    constructor(socket, onchange=null, options={}) {
+        super("poll", socket, onchange, options)
+        this.requestClosePoll = this.requestClosePoll.bind(this)
+        this.requestOpenPoll = this.requestOpenPoll.bind(this)
+        this.handlePollResponse = this.handlePollResponse.bind(this)
+        this.message_names = Object.assign(this.message_names, {
+            open: "open poll",
+            close: "close poll",
+        })
+        this.socket_events = Object.assign(this.socket_events, {
+            "new poll response": this.handlePollResponse,
+            "open poll": this.handleUpdate,
+            "close poll": this.handleUpdate,
+        })
+    }
+    requestOpenPoll(item) {
+        this.request("open", item)
+    }
+    requestClosePoll(item) {
+        this.request("close", item)
+    }
+    handlePollResponse(item) {
+        if(item.action=="insert") {
+            this.collection = this.collection.map( x => {
+                if (x[this.idfield] == item[this.idfield]) {
+                    return Object.assign(x, {"response_count": x.response_count + 1})
+                } else {
+                    return x
+                }
+            })
+            this.handleOnChange()
         }
     }
 }
