@@ -1,6 +1,7 @@
 import React from 'react';
 import debounce from 'lodash/debounce';
-import { CSSTransitionGroup } from 'react-transition-group' // ES6
+import { CSSTransitionGroup } from 'react-transition-group'
+import { ImageGrabber } from './image-grabber'
 
 export default class Student extends React.Component {
     constructor(props) {
