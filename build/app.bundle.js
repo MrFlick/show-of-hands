@@ -15345,6 +15345,13 @@ var PollForm = function (_React$Component6) {
                                 checked: this.state.type == "multiple_choice" }),
                             ' choice'
                         ),
+                        _react2.default.createElement(
+                            'label',
+                            null,
+                            _react2.default.createElement('input', { type: 'radio', name: 'type', value: 'image', onChange: this.handleInputChange,
+                                checked: this.state.type == "image" }),
+                            ' image'
+                        ),
                         _react2.default.createElement('textarea', { name: 'options', value: this.state.options,
                             onChange: this.handleInputChange,
                             style: { width: "100%", height: "100px" } })
@@ -16275,6 +16282,8 @@ var Poll = function (_React$Component2) {
                     null,
                     _react2.default.createElement('input', { types: 'text', style: { width: "100%" }, placeholder: 'Please enter a number', onChange: this.handleTextChange })
                 );
+            } else if (poll.type == "image") {
+                input = _react2.default.createElement(_imageGrabber.ImageGrabber, null);
             } else {
                 input = _react2.default.createElement(
                     'div',
@@ -16723,10 +16732,17 @@ var AdminSnippetSocketData = exports.AdminSnippetSocketData = function (_SocketD
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+exports.ImageGrabber = undefined;
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _react = __webpack_require__(4);
+
+var _react2 = _interopRequireDefault(_react);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -16790,8 +16806,9 @@ var ImageGrabber = exports.ImageGrabber = function (_React$Component) {
         _this.uploadFile = function () {
             _this.setState({ is_submitting: true });
             var fd = new FormData();
-            fd.append("file", _this.dropped_files[0]);
-            fd.append("file_name", _this.dropped_files[0].name);
+            var dropped_files = _this.data.dropped_files;
+            fd.append("file", dropped_files[0]);
+            fd.append("file_name", dropped_files[0].name);
             var xhr = new XMLHttpRequest();
             xhr.upload.addEventListener("progress", uploadProgress, false);
             xhr.addEventListener("load", function () {
@@ -16811,7 +16828,7 @@ var ImageGrabber = exports.ImageGrabber = function (_React$Component) {
                         _this.uploadFailed(xhr.responseText);
                     }
                 }
-                _this.dropped_files = [];
+                _this.setState({ dropped_files: [] });
                 _this.checkReadyToUpload();
             }, false);
             xhr.addEventListener("error", _this.uploadFailed, false);
@@ -16821,7 +16838,7 @@ var ImageGrabber = exports.ImageGrabber = function (_React$Component) {
         };
 
         _this.checkReadyToUpload = function () {
-            if (_this.dropped_files.length) {
+            if (_this.state.dropped_files.length) {
                 //submitButton.show().text("Upload File (" + dropped_files[0].name + ")");
             } else {
                     //submitButton.hide();
@@ -16838,31 +16855,32 @@ var ImageGrabber = exports.ImageGrabber = function (_React$Component) {
         };
 
         _this.handleDragOver = function (e) {
-            _this.arrestEvent();
+            _this.arrestEvent(e);
             _this.setState({ can_drop: true });
         };
 
         _this.handleDragLeave = function (e) {
-            _this.arrestEvent();
+            _this.arrestEvent(e);
             _this.setState({ can_drop: false });
         };
 
         _this.handleDrop = function (e) {
-            if (e.originalEvent.dataTransfer.items.length) {
-                _this.dropped_files = toArray(e.originalEvent.dataTransfer.files);
+            _this.arrestEvent(e);
+            if (e.dataTransfer.items.length) {
+                _this.setState({ dropped_files: toArray(e.dataTransfer.files) });
             } else {
-                _this.dropped_files = [];
+                _this.setState({ dropped_files: [] });
             }
             _this.checkReadyToUpload();
         };
 
         _this.handleFileChange = function (e) {
-            _this.dropped_files = toArray(e.originalEvent.target.files) || [];
+            _this.setState({ dropped_files: toArray(e.target.files) || [] });
             _this.checkReadyToUpload();
         };
 
         _this.getPastedImages = function (e) {
-            var cd = e.originalEvent.clipboardData;
+            var cd = e.clipboardData;
             if (cd) {
                 var items = toArray(cd.items);
                 return items.filter(function (x) {
@@ -16876,8 +16894,26 @@ var ImageGrabber = exports.ImageGrabber = function (_React$Component) {
 
         _this.handlePaste = function (e) {
             e.preventDefault();
-            _this.dropped_files = getPastedImages(e);
+            _this.setState({ dropped_files: _this.getPastedImages(e) });
             _this.checkReadyToUpload();
+        };
+
+        _this.handleFormShow = function (e) {
+            _this.setState({ is_form_showing: true });
+            if (_this.formRef) {
+                $(_this.formRef).modal("show");
+                $(_this.formRef).on("hide.bs.modal", _this.handleFormHide);
+            }
+            _this.attachDocumentEvents();
+        };
+
+        _this.handleFormHide = function (e) {
+            console.log("hiting");
+            _this.setState({ is_form_showing: false });
+            if (_this.formRef) {
+                $(_this.formRef).off("hide.bs.modal", _this.handleFormHide);
+            }
+            _this.unattachDocumentEvents();
         };
 
         _this.attachDocumentEvents = function () {
@@ -16888,16 +16924,82 @@ var ImageGrabber = exports.ImageGrabber = function (_React$Component) {
             document.removeEventListener("paste", _this.handlePaste);
         };
 
-        _this.componentDidMount = function () {
-            attachDocumentEvents();
+        _this.componentDidMount = function () {};
+
+        _this.componentWillUnmount = function () {};
+
+        _this.renderModalForm = function () {
+            var events = {};
+            eventRepeat(events, "onDrag onDragStart", _this.arrestEvent);
+            eventRepeat(events, "onDragOver onDragEnter", _this.handleDragOver);
+            eventRepeat(events, "onDragLeave onDragEnd onDrop", _this.handleDragLeave);
+            eventRepeat(events, "onDrop", _this.handleDrop);
+            return _react2.default.createElement(
+                "div",
+                { className: "modal fade", ref: function ref(form) {
+                        _this.formRef = form;
+                    }, role: "dialog" },
+                _react2.default.createElement(
+                    "div",
+                    { className: "modal-dialog" },
+                    _react2.default.createElement(
+                        "div",
+                        { className: "modal-content" },
+                        _react2.default.createElement(
+                            "div",
+                            { className: "modal-header" },
+                            _react2.default.createElement(
+                                "button",
+                                { type: "button", className: "close", "data-dismiss": "modal" },
+                                "\xD7"
+                            ),
+                            _react2.default.createElement(
+                                "h4",
+                                { className: "modal-title" },
+                                "Image Selection"
+                            )
+                        ),
+                        _react2.default.createElement(
+                            "div",
+                            { className: "modal-body" },
+                            _react2.default.createElement(
+                                "div",
+                                _extends({ className: "form-group" }, events),
+                                _react2.default.createElement(
+                                    "label",
+                                    { className: "col-sm-2 control-label", htmlFor: "job_name" },
+                                    "Name"
+                                ),
+                                _react2.default.createElement(
+                                    "div",
+                                    { className: "col-sm-10" },
+                                    _react2.default.createElement("input", { type: "text", className: "form-control", id: "job_name" })
+                                ),
+                                _react2.default.createElement("input", { type: "file", onChange: _this.handleFileChange })
+                            )
+                        ),
+                        _react2.default.createElement(
+                            "div",
+                            { className: "modal-footer" },
+                            _react2.default.createElement(
+                                "button",
+                                { type: "button", className: "btn btn-default", "data-dismiss": "modal" },
+                                "Cancel"
+                            ),
+                            _react2.default.createElement(
+                                "button",
+                                { type: "button", className: "btn btn-success edit-job-save" },
+                                "Save"
+                            )
+                        )
+                    )
+                )
+            );
         };
 
-        _this.componentWillUnmount = function () {
-            unattachDocumentEvents();
-        };
-
-        _this.dropped_files = [];
         _this.state = {
+            dropped_files: [],
+            is_form_showing: false,
             is_submitting: false,
             can_drop: false,
             percent_complete: 0
@@ -16912,35 +17014,32 @@ var ImageGrabber = exports.ImageGrabber = function (_React$Component) {
     _createClass(ImageGrabber, [{
         key: "render",
         value: function render() {
-            var events = {};
-            repeatEvents(events, "onDrag onDragStart", this.arrestEvent);
-            repeatEvents(events, "onDragOver onDragEnter", this.handleDragOver);
-            repeatEvents(events, "onDragLeave onDragEnd onDrop", this.handleDragLeave);
-            images = this.dropped_files.map(function (file) {
+            var images = this.state.dropped_files.map(function (file, i) {
                 var URLObj = window.URL || window.webkitURL;
                 var source = URLObj.createObjectURL(file);
-                return React.createElement("img", { src: source });
+                return _react2.default.createElement("img", { src: source, key: i });
             });
-            return React.createElement(
+            var form = this.renderModalForm();
+            return _react2.default.createElement(
                 "div",
-                _extends({ style: "border: 1px solid red", "class": "ubox" }, events),
-                React.createElement(
+                { className: "ubox" },
+                _react2.default.createElement(
                     "div",
                     { id: "preview" },
                     images
                 ),
-                React.createElement("input", { type: "file", onChange: this.handleFileChange }),
-                React.createElement(
+                _react2.default.createElement(
                     "button",
-                    { "class": ".ubox-button", onClick: this.handleImageSend },
-                    "Send"
-                )
+                    { className: ".ubox-button", onClick: this.handleFormShow },
+                    "Choose"
+                ),
+                form
             );
         }
     }]);
 
     return ImageGrabber;
-}(React.Component);
+}(_react2.default.Component);
 
 /***/ }),
 /* 133 */

@@ -305,6 +305,8 @@ class PollForm extends React.Component {
                     checked={this.state.type=="number"}/> number </label> 
                 <label><input type="radio" name="type" value="multiple_choice" onChange={this.handleInputChange} 
                     checked={this.state.type=="multiple_choice"}/> choice</label>
+                <label><input type="radio" name="type" value="image" onChange={this.handleInputChange} 
+                    checked={this.state.type=="image"}/> image</label>
                 <textarea name="options" value={this.state.options} 
                     onChange={this.handleInputChange}
                     style={{width: "100%", height: "100px"}}/>

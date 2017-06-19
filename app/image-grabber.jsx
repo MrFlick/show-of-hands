@@ -1,3 +1,5 @@
+import React from 'react';
+
 function has_modern_upload() {
     var div = document.createElement("div");
     return (("draggable" in div) || ("ondragstart" in div && "ondrop" in div)) && "FormData" in window && "FileReader" in window;
@@ -15,8 +17,9 @@ export class ImageGrabber extends React.Component {
     constructor(props) {
         super(props)
 
-        this.dropped_files = []
         this.state = {
+            dropped_files: [],
+            is_form_showing: false,
             is_submitting: false,
             can_drop: false,
             percent_complete: 0,
@@ -60,8 +63,9 @@ export class ImageGrabber extends React.Component {
     uploadFile = ()  => {
         this.setState({ is_submitting: true })
         var fd = new FormData();
-        fd.append("file", this.dropped_files[0]);
-        fd.append("file_name", this.dropped_files[0].name);
+        let dropped_files = this.data.dropped_files
+        fd.append("file", dropped_files[0])
+        fd.append("file_name", dropped_files[0].name);
         var xhr = new XMLHttpRequest();
         xhr.upload.addEventListener("progress", uploadProgress, false);
         xhr.addEventListener("load", () => {
@@ -81,7 +85,7 @@ export class ImageGrabber extends React.Component {
                     this.uploadFailed(xhr.responseText);
                 }
             }
-            this.dropped_files = [];
+            this.setState({dropped_files: []})
             this.checkReadyToUpload();
         }, false);
         xhr.addEventListener("error", this.uploadFailed, false);
@@ -91,7 +95,7 @@ export class ImageGrabber extends React.Component {
     }
 
     checkReadyToUpload = () => {
-        if (this.dropped_files.length) {
+        if (this.state.dropped_files.length) {
             //submitButton.show().text("Upload File (" + dropped_files[0].name + ")");
         } else {
             //submitButton.hide();
@@ -118,21 +122,22 @@ export class ImageGrabber extends React.Component {
     }
 
     handleDrop = (e) => {
-        if (e.originalEvent.dataTransfer.items.length) {
-            this.dropped_files = toArray(e.originalEvent.dataTransfer.files);
+        this.arrestEvent(e)
+        if (e.dataTransfer.items.length) {
+            this.setState({dropped_files: toArray(e.dataTransfer.files)})
         } else {
-            this.dropped_files = [];
+            this.setState({dropped_files: []})
         }
         this.checkReadyToUpload();
     }
 
     handleFileChange = (e) => {
-        this.dropped_files = toArray(e.originalEvent.target.files) || [];
+        this.setState({dropped_files: toArray(e.target.files) || []});
         this.checkReadyToUpload();
     }
 
     getPastedImages = (e) => {
-        var cd = e.originalEvent.clipboardData
+        var cd = e.clipboardData
         if(cd) {
             let items = toArray(cd.items)
             return items.filter(x => x.type.indexOf("image")!==-1).
@@ -142,38 +147,78 @@ export class ImageGrabber extends React.Component {
     }
 
     handlePaste = (e) => {
-        e.preventDefault();
-        this.dropped_files = getPastedImages(e);
-        this.checkReadyToUpload();
+        e.preventDefault()
+        this.setState({dropped_files: this.getPastedImages(e)})
+        this.checkReadyToUpload()
+    }
+
+    handleFormShow = (e) => {
+        this.setState({is_form_showing: true});
+        if(this.formRef) {
+            $(this.formRef).modal("show");
+            $(this.formRef).on("hide.bs.modal", this.handleFormHide)
+        }
+        this.attachDocumentEvents()
+    }   
+
+    handleFormHide = (e) => {
+        console.log("hiting")
+        this.setState({is_form_showing: false});
+        if(this.formRef) {
+            $(this.formRef).off("hide.bs.modal", this.handleFormHide)
+        }
+        this.unattachDocumentEvents()
     }
 
     attachDocumentEvents = () => {
-        document.addEventListener("paste",  this.handlePaste)
+        document.addEventListener("paste", this.handlePaste)
     }
     unattachDocumentEvents = () => {
-        document.removeEventListener("paste",  this.handlePaste)
+        document.removeEventListener("paste", this.handlePaste)
     }
-    componentDidMount = () => {
-        attachDocumentEvents()
-    }
-    componentWillUnmount = () => {
-        unattachDocumentEvents()
+    componentDidMount = () => { }
+    componentWillUnmount = () => { }
+
+    renderModalForm = () => {
+        var events = {}
+        eventRepeat(events, "onDrag onDragStart", this.arrestEvent)
+        eventRepeat(events, "onDragOver onDragEnter", this.handleDragOver)
+        eventRepeat(events, "onDragLeave onDragEnd onDrop", this.handleDragLeave) 
+        eventRepeat(events, "onDrop", this.handleDrop) 
+        return <div className="modal fade" ref={(form) => {this.formRef = form}} role="dialog">
+            <div className="modal-dialog">
+                <div className="modal-content">
+                    <div className="modal-header">
+                        <button type="button" className="close" data-dismiss="modal">&times;</button>
+                        <h4 className="modal-title">Image Selection</h4>
+                    </div>
+                    <div className="modal-body">
+                        <div className="form-group" {...events}>
+                            <label className="col-sm-2 control-label" htmlFor="job_name">Name</label>
+                            <div className="col-sm-10"><input type="text" className="form-control" id="job_name"/></div>
+                            <input type="file" onChange={this.handleFileChange} />
+                        </div>
+                    </div>
+                    <div className="modal-footer">
+                        <button type="button" className="btn btn-default" data-dismiss="modal">Cancel</button>
+                        <button type="button" className="btn btn-success edit-job-save" >Save</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     }
 
     render() {
-        var events = {}
-        repeatEvents(events, "onDrag onDragStart", this.arrestEvent)
-        repeatEvents(events, "onDragOver onDragEnter", this.handleDragOver)
-        repeatEvents(events, "onDragLeave onDragEnd onDrop", this.handleDragLeave) 
-        images = this.dropped_files.map(file => {
+        let images = this.state.dropped_files.map((file,i) => {
             var URLObj = window.URL || window.webkitURL;
             var source = URLObj.createObjectURL(file);
-            return <img src={source}/>
+            return <img src={source} key={i}/>
         })
-        return <div style="border: 1px solid red" class="ubox" {...events}>
+        let form = this.renderModalForm();
+        return <div className="ubox">
             <div id="preview">{images}</div>
-            <input type="file" onChange={this.handleFileChange} />
-            <button class=".ubox-button" onClick={this.handleImageSend}>Send</button>
+            <button className=".ubox-button" onClick={this.handleFormShow}>Choose</button>
+            {form}
         </div>
     }
 }
