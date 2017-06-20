@@ -92,7 +92,8 @@ export default class Student extends React.Component {
         return <div className="row">
             <div className="col-6">
                 <h2>Questions</h2>
-                <PollList polls={this.state.polls} socket={this.socket}/>
+                <PollList polls={this.state.polls} socket={this.socket} 
+                    imglink={this.props.history.createHref({pathname:"/img"})}/>
             </div><div className="col-6">
                 <h2>Snippets</h2>
                 <SnippetList snippets={this.state.snippets}/>
@@ -128,7 +129,7 @@ function PollList(props) {
         return <div><CSSTransitionGroup transitionName="list"
         transitionEnterTimeout={500}
         transitionLeaveTimeout={300}>{props.polls.map((row) => {
-            return <Poll key={row.poll_id} poll={row} socket={socket}></Poll>;
+            return <Poll key={row.poll_id} poll={row} socket={socket} imglink={props.imglink}></Poll>;
         })}</CSSTransitionGroup></div>
     } else {
         return <p>No polls curently open</p>
@@ -193,7 +194,7 @@ class Poll extends React.Component {
         } else if (poll.type=="number") { 
             input = <div><input types="text" style={{width: "100%"}} placeholder="Please enter a number" onChange={this.handleTextChange}/></div>
         } else if (poll.type=="image") {
-            input = <ImageGrabber/>
+            input = <ImageGrabber action={this.props.imglink}/>
         } else {
             input = <div><textarea style={{width: "100%", height: "100px"}} onChange={this.handleTextChange}/></div>;
         }

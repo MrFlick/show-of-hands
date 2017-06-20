@@ -32,12 +32,13 @@ export class ImageGrabber extends React.Component {
 
     uploadProgress = (e) => {
         if (e.lengthComputable) {
-            var percentComplete = Math.round(evt.loaded * 100 / evt.total);
+            var percentComplete = Math.round(e.loaded * 100 / e.total);
             this.setState({precent_complete: percentComplete})
         }
     }
 
     uploadFailed = (msg) => {
+        console.log("failed")
         this.setState({
             precent_complete: 0,
             is_submitting: false})
@@ -52,22 +53,25 @@ export class ImageGrabber extends React.Component {
     }
 
     uploadComplete = (resp) => {
+        console.log(resp)
         this.setState({
             precent_complete: 0,
             is_submitting: false})
-        if (this.onupload) {
-            this.onupload(resp);
+        if (this.onUpload) {
+            this.onUpload(resp);
         }
+        this.formClose();
     }
 
     uploadFile = ()  => {
+        console.log("submitting")
         this.setState({ is_submitting: true })
         var fd = new FormData();
-        let dropped_files = this.data.dropped_files
+        let dropped_files = this.state.dropped_files
         fd.append("file", dropped_files[0])
         fd.append("file_name", dropped_files[0].name);
         var xhr = new XMLHttpRequest();
-        xhr.upload.addEventListener("progress", uploadProgress, false);
+        xhr.upload.addEventListener("progress", this.uploadProgress, false);
         xhr.addEventListener("load", () => {
             /* This event is raised when the server send back a response */
             if (xhr.status >= 200 && xhr.status < 300) {
@@ -162,12 +166,17 @@ export class ImageGrabber extends React.Component {
     }   
 
     handleFormHide = (e) => {
-        console.log("hiting")
         this.setState({is_form_showing: false});
         if(this.formRef) {
             $(this.formRef).off("hide.bs.modal", this.handleFormHide)
         }
         this.unattachDocumentEvents()
+    }
+
+    formClose = () => {
+        if(this.formRef) {
+            $(this.formRef).modal("hide");
+        }
     }
 
     attachDocumentEvents = () => {
@@ -185,7 +194,14 @@ export class ImageGrabber extends React.Component {
         eventRepeat(events, "onDragOver onDragEnter", this.handleDragOver)
         eventRepeat(events, "onDragLeave onDragEnd onDrop", this.handleDragLeave) 
         eventRepeat(events, "onDrop", this.handleDrop) 
-        return <div className="modal fade" ref={(form) => {this.formRef = form}} role="dialog">
+        let images = this.state.dropped_files.map((file,i) => {
+            var URLObj = window.URL || window.webkitURL;
+            var source = URLObj.createObjectURL(file);
+            return <img src={source} key={i}/>
+        })
+        return <div className="modal fade" 
+            data-backdrop="static" role="dialog"
+            ref={(form) => {this.formRef = form}}>
             <div className="modal-dialog">
                 <div className="modal-content">
                     <div className="modal-header">
@@ -194,6 +210,7 @@ export class ImageGrabber extends React.Component {
                     </div>
                     <div className="modal-body">
                         <div className="form-group" {...events}>
+                            <div id="preview">{images}</div>
                             <label className="col-sm-2 control-label" htmlFor="job_name">Name</label>
                             <div className="col-sm-10"><input type="text" className="form-control" id="job_name"/></div>
                             <input type="file" onChange={this.handleFileChange} />
@@ -201,7 +218,7 @@ export class ImageGrabber extends React.Component {
                     </div>
                     <div className="modal-footer">
                         <button type="button" className="btn btn-default" data-dismiss="modal">Cancel</button>
-                        <button type="button" className="btn btn-success edit-job-save" >Save</button>
+                        <button type="button" className="btn btn-success" onClick={this.uploadFile}>Save</button>
                     </div>
                 </div>
             </div>
@@ -209,14 +226,8 @@ export class ImageGrabber extends React.Component {
     }
 
     render() {
-        let images = this.state.dropped_files.map((file,i) => {
-            var URLObj = window.URL || window.webkitURL;
-            var source = URLObj.createObjectURL(file);
-            return <img src={source} key={i}/>
-        })
         let form = this.renderModalForm();
         return <div className="ubox">
-            <div id="preview">{images}</div>
             <button className=".ubox-button" onClick={this.handleFormShow}>Choose</button>
             {form}
         </div>

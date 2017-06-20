@@ -231,6 +231,16 @@ var DataStore = function(dbpath) {
         return update(db, sql, snip.snippet_id)
     };
 
+    this.addImage = function(img) {
+        let sql = "INSERT INTO images (blob) VALUES (?)";
+        return insert(db, sql, img).then((result) => {
+            return result.newID;
+        });
+    }
+    this.getImage = function(img) {
+    
+    }
+
 	this.close = function() {
 		db.close();
 	};

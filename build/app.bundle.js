@@ -16103,7 +16103,8 @@ var Student = function (_React$Component) {
                         null,
                         'Questions'
                     ),
-                    _react2.default.createElement(PollList, { polls: this.state.polls, socket: this.socket })
+                    _react2.default.createElement(PollList, { polls: this.state.polls, socket: this.socket,
+                        imglink: this.props.history.createHref({ pathname: "/img" }) })
                 ),
                 _react2.default.createElement(
                     'div',
@@ -16183,7 +16184,7 @@ function PollList(props) {
                     transitionEnterTimeout: 500,
                     transitionLeaveTimeout: 300 },
                 props.polls.map(function (row) {
-                    return _react2.default.createElement(Poll, { key: row.poll_id, poll: row, socket: socket });
+                    return _react2.default.createElement(Poll, { key: row.poll_id, poll: row, socket: socket, imglink: props.imglink });
                 })
             )
         );
@@ -16283,7 +16284,7 @@ var Poll = function (_React$Component2) {
                     _react2.default.createElement('input', { types: 'text', style: { width: "100%" }, placeholder: 'Please enter a number', onChange: this.handleTextChange })
                 );
             } else if (poll.type == "image") {
-                input = _react2.default.createElement(_imageGrabber.ImageGrabber, null);
+                input = _react2.default.createElement(_imageGrabber.ImageGrabber, { action: this.props.imglink });
             } else {
                 input = _react2.default.createElement(
                     'div',
@@ -16775,12 +16776,13 @@ var ImageGrabber = exports.ImageGrabber = function (_React$Component) {
 
         _this.uploadProgress = function (e) {
             if (e.lengthComputable) {
-                var percentComplete = Math.round(evt.loaded * 100 / evt.total);
+                var percentComplete = Math.round(e.loaded * 100 / e.total);
                 _this.setState({ precent_complete: percentComplete });
             }
         };
 
         _this.uploadFailed = function (msg) {
+            console.log("failed");
             _this.setState({
                 precent_complete: 0,
                 is_submitting: false });
@@ -16795,22 +16797,25 @@ var ImageGrabber = exports.ImageGrabber = function (_React$Component) {
         };
 
         _this.uploadComplete = function (resp) {
+            console.log(resp);
             _this.setState({
                 precent_complete: 0,
                 is_submitting: false });
-            if (_this.onupload) {
-                _this.onupload(resp);
+            if (_this.onUpload) {
+                _this.onUpload(resp);
             }
+            _this.formClose();
         };
 
         _this.uploadFile = function () {
+            console.log("submitting");
             _this.setState({ is_submitting: true });
             var fd = new FormData();
-            var dropped_files = _this.data.dropped_files;
+            var dropped_files = _this.state.dropped_files;
             fd.append("file", dropped_files[0]);
             fd.append("file_name", dropped_files[0].name);
             var xhr = new XMLHttpRequest();
-            xhr.upload.addEventListener("progress", uploadProgress, false);
+            xhr.upload.addEventListener("progress", _this.uploadProgress, false);
             xhr.addEventListener("load", function () {
                 /* This event is raised when the server send back a response */
                 if (xhr.status >= 200 && xhr.status < 300) {
@@ -16908,12 +16913,17 @@ var ImageGrabber = exports.ImageGrabber = function (_React$Component) {
         };
 
         _this.handleFormHide = function (e) {
-            console.log("hiting");
             _this.setState({ is_form_showing: false });
             if (_this.formRef) {
                 $(_this.formRef).off("hide.bs.modal", _this.handleFormHide);
             }
             _this.unattachDocumentEvents();
+        };
+
+        _this.formClose = function () {
+            if (_this.formRef) {
+                $(_this.formRef).modal("hide");
+            }
         };
 
         _this.attachDocumentEvents = function () {
@@ -16934,11 +16944,18 @@ var ImageGrabber = exports.ImageGrabber = function (_React$Component) {
             eventRepeat(events, "onDragOver onDragEnter", _this.handleDragOver);
             eventRepeat(events, "onDragLeave onDragEnd onDrop", _this.handleDragLeave);
             eventRepeat(events, "onDrop", _this.handleDrop);
+            var images = _this.state.dropped_files.map(function (file, i) {
+                var URLObj = window.URL || window.webkitURL;
+                var source = URLObj.createObjectURL(file);
+                return _react2.default.createElement("img", { src: source, key: i });
+            });
             return _react2.default.createElement(
                 "div",
-                { className: "modal fade", ref: function ref(form) {
+                { className: "modal fade",
+                    "data-backdrop": "static", role: "dialog",
+                    ref: function ref(form) {
                         _this.formRef = form;
-                    }, role: "dialog" },
+                    } },
                 _react2.default.createElement(
                     "div",
                     { className: "modal-dialog" },
@@ -16966,6 +16983,11 @@ var ImageGrabber = exports.ImageGrabber = function (_React$Component) {
                                 "div",
                                 _extends({ className: "form-group" }, events),
                                 _react2.default.createElement(
+                                    "div",
+                                    { id: "preview" },
+                                    images
+                                ),
+                                _react2.default.createElement(
                                     "label",
                                     { className: "col-sm-2 control-label", htmlFor: "job_name" },
                                     "Name"
@@ -16988,7 +17010,7 @@ var ImageGrabber = exports.ImageGrabber = function (_React$Component) {
                             ),
                             _react2.default.createElement(
                                 "button",
-                                { type: "button", className: "btn btn-success edit-job-save" },
+                                { type: "button", className: "btn btn-success", onClick: _this.uploadFile },
                                 "Save"
                             )
                         )
@@ -17014,20 +17036,10 @@ var ImageGrabber = exports.ImageGrabber = function (_React$Component) {
     _createClass(ImageGrabber, [{
         key: "render",
         value: function render() {
-            var images = this.state.dropped_files.map(function (file, i) {
-                var URLObj = window.URL || window.webkitURL;
-                var source = URLObj.createObjectURL(file);
-                return _react2.default.createElement("img", { src: source, key: i });
-            });
             var form = this.renderModalForm();
             return _react2.default.createElement(
                 "div",
                 { className: "ubox" },
-                _react2.default.createElement(
-                    "div",
-                    { id: "preview" },
-                    images
-                ),
                 _react2.default.createElement(
                     "button",
                     { className: ".ubox-button", onClick: this.handleFormShow },

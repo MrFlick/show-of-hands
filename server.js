@@ -1,14 +1,28 @@
 var express = require('express');
 var app = express();
+const fileUpload = require('express-fileupload');
 var http = require('http').createServer(app);
 var io = require('socket.io')(http);
-//var io = require('socket.io')(http);
 var config = require('./config');
 
 var http_port = config.port || 41742;
 var data = require("./data-layer").getDataStore(config.db_path);
 
 app.use(express.static(__dirname + '/build'))
+app.use(fileUpload())
+
+app.post("/img", function(req, res) {
+    if(req.files) {
+        data.addImage(req.files.file.data).then((imgid) => {
+            res.send(JSON.stringify({id: imgid}))
+        })
+    } else {
+        res.send("error")
+    }
+});
+app.get("/img/:imgid", function(req, res) {
+    res.send("Done!");
+});
 app.get("*", function(req, res) {
     res.sendFile(__dirname + '/build/index.html');
 });

@@ -24,3 +24,8 @@ CREATE TABLE snippets (
 	status INTEGER NOT NULL DEFAULT 0,
 	open_seq INTEGER NOT NULL DEFAULT 0
 );
+
+CREATE TABLE images (
+	img_id INTEGER PRIMARY KEY,
+	blob BLOB
+);
