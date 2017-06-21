@@ -156,11 +156,9 @@ class Histogram extends React.Component {
 
 function Image(props) {
     if (props.value) {
-        console.log("img", props.value)
         let url = (props.imglink || "") + "/" + props.value;
         return <img src={url}/>
     } else {
-        console.log("no img val")
         return null
     }
 }

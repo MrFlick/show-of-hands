@@ -14837,7 +14837,7 @@ var Presenter = function (_React$Component) {
     }, {
         key: 'componentWillUnmount',
         value: function componentWillUnmount() {
-            this.poll_wraper.listenStop();
+            this.poll_wrapper.listenStop();
             this.snip_wrapper.listenStop();
         }
     }, {

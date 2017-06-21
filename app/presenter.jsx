@@ -25,7 +25,7 @@ export default class Presenter extends React.Component {
         this.socket.emit("request snippet list all")
     }
     componentWillUnmount() {
-        this.poll_wraper.listenStop()
+        this.poll_wrapper.listenStop()
         this.snip_wrapper.listenStop()
     }
     render() {
