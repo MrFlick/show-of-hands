@@ -53,18 +53,16 @@ export class ImageGrabber extends React.Component {
     }
 
     uploadComplete = (resp) => {
-        console.log(resp)
         this.setState({
             precent_complete: 0,
             is_submitting: false})
-        if (this.onUpload) {
-            this.onUpload(resp);
+        if (this.props.onUpload) {
+            this.props.onUpload(resp);
         }
         this.formClose();
     }
 
     uploadFile = ()  => {
-        console.log("submitting")
         this.setState({ is_submitting: true })
         var fd = new FormData();
         let dropped_files = this.state.dropped_files

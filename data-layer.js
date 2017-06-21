@@ -232,13 +232,14 @@ var DataStore = function(dbpath) {
     };
 
     this.addImage = function(img) {
-        let sql = "INSERT INTO images (blob) VALUES (?)";
-        return insert(db, sql, img).then((result) => {
+        let sql = "INSERT INTO images (mime_type, blob) VALUES (?, ?)";
+        return insert(db, sql, img.mimetype, img.blob).then((result) => {
             return result.newID;
         });
     }
     this.getImage = function(img) {
-    
+        let sql = "SELECT * FROM images WHERE img_id=?"
+        return getOne(db, sql, img)
     }
 
 	this.close = function() {

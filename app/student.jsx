@@ -3,6 +3,17 @@ import debounce from 'lodash/debounce';
 import { CSSTransitionGroup } from 'react-transition-group'
 import { ImageGrabber } from './image-grabber'
 
+function Image(props) {
+    if (props.value) {
+        console.log("img", props.value)
+        let url = (props.imglink || "") + "/" + props.value;
+        return <img src={url}/>
+    } else {
+        console.log("no img val")
+        return null
+    }
+}
+
 export default class Student extends React.Component {
     constructor(props) {
         super(props)
@@ -144,13 +155,15 @@ class Poll extends React.Component {
             value: null
         }
         this.socket = props.socket;
+        this.changeValue = this.changeValue.bind(this);
         this.handleChange = this.handleChange.bind(this);
         this.handleTextChange = this.handleTextChange.bind(this);
         this.handleChangeDebounce = debounce(this.handleChange.bind(this), 500);
+        this.handleImageUpload = this.handleImageUpload.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
     }
-    handleChange(e) {
-        this.setState({value: e.target.value}, () => {
+    changeValue(value) {
+        this.setState({value: value}, () => {
             let poll = this.props.poll;
             let resp = {
                 poll_id: poll.poll_id,
@@ -160,9 +173,15 @@ class Poll extends React.Component {
             this.setState({answered: true});
         });
     }
+    handleChange(e) {
+        this.changeValue(e.target.value)
+    }
     handleTextChange(e) {
         e.persist()
         this.handleChangeDebounce(e)
+    }
+    handleImageUpload(e) {
+        this.changeValue(e.id)
     }
     handleSubmit(e) {
         e.preventDefault();
@@ -194,7 +213,8 @@ class Poll extends React.Component {
         } else if (poll.type=="number") { 
             input = <div><input types="text" style={{width: "100%"}} placeholder="Please enter a number" onChange={this.handleTextChange}/></div>
         } else if (poll.type=="image") {
-            input = <ImageGrabber action={this.props.imglink}/>
+            input = [<Image value={this.state.value} imglink={this.props.imglink} key="view"/>, 
+                <ImageGrabber action={this.props.imglink} onUpload={this.handleImageUpload} key="new"/>]
         } else {
             input = <div><textarea style={{width: "100%", height: "100px"}} onChange={this.handleTextChange}/></div>;
         }

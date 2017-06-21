@@ -15611,6 +15611,9 @@ var Results = function (_React$Component) {
                 drawcomp = _react2.default.createElement(ResponseDump, { poll: this.state, responses: this.state.responses });
             } else if (this.state.type == "number") {
                 drawcomp = _react2.default.createElement(Histogram, { poll: this.state, responses: this.state.responses });
+            } else if (this.state.type == "image") {
+                drawcomp = _react2.default.createElement(ImageList, { poll: this.state, responses: this.state.responses,
+                    imglink: this.props.history.createHref({ pathname: "/img" }) });
             } else {
                 drawcomp = _react2.default.createElement(
                     'div',
@@ -15817,6 +15820,27 @@ var Histogram = function (_React$Component3) {
     return Histogram;
 }(_react2.default.Component);
 
+function Image(props) {
+    if (props.value) {
+        console.log("img", props.value);
+        var url = (props.imglink || "") + "/" + props.value;
+        return _react2.default.createElement('img', { src: url });
+    } else {
+        console.log("no img val");
+        return null;
+    }
+}
+
+function ImageList(props) {
+    return _react2.default.createElement(
+        'div',
+        null,
+        props.responses.map(function (x, i) {
+            return _react2.default.createElement(Image, { value: x.response, imglink: props.imglink, key: i });
+        })
+    );
+}
+
 /***/ }),
 /* 126 */
 /***/ (function(module, exports, __webpack_require__) {
@@ -15938,6 +15962,17 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+function Image(props) {
+    if (props.value) {
+        console.log("img", props.value);
+        var url = (props.imglink || "") + "/" + props.value;
+        return _react2.default.createElement('img', { src: url });
+    } else {
+        console.log("no img val");
+        return null;
+    }
+}
 
 var Student = function (_React$Component) {
     _inherits(Student, _React$Component);
@@ -16210,19 +16245,21 @@ var Poll = function (_React$Component2) {
             value: null
         };
         _this4.socket = props.socket;
+        _this4.changeValue = _this4.changeValue.bind(_this4);
         _this4.handleChange = _this4.handleChange.bind(_this4);
         _this4.handleTextChange = _this4.handleTextChange.bind(_this4);
         _this4.handleChangeDebounce = (0, _debounce2.default)(_this4.handleChange.bind(_this4), 500);
+        _this4.handleImageUpload = _this4.handleImageUpload.bind(_this4);
         _this4.handleSubmit = _this4.handleSubmit.bind(_this4);
         return _this4;
     }
 
     _createClass(Poll, [{
-        key: 'handleChange',
-        value: function handleChange(e) {
+        key: 'changeValue',
+        value: function changeValue(value) {
             var _this5 = this;
 
-            this.setState({ value: e.target.value }, function () {
+            this.setState({ value: value }, function () {
                 var poll = _this5.props.poll;
                 var resp = {
                     poll_id: poll.poll_id,
@@ -16233,10 +16270,20 @@ var Poll = function (_React$Component2) {
             });
         }
     }, {
+        key: 'handleChange',
+        value: function handleChange(e) {
+            this.changeValue(e.target.value);
+        }
+    }, {
         key: 'handleTextChange',
         value: function handleTextChange(e) {
             e.persist();
             this.handleChangeDebounce(e);
+        }
+    }, {
+        key: 'handleImageUpload',
+        value: function handleImageUpload(e) {
+            this.changeValue(e.id);
         }
     }, {
         key: 'handleSubmit',
@@ -16284,7 +16331,7 @@ var Poll = function (_React$Component2) {
                     _react2.default.createElement('input', { types: 'text', style: { width: "100%" }, placeholder: 'Please enter a number', onChange: this.handleTextChange })
                 );
             } else if (poll.type == "image") {
-                input = _react2.default.createElement(_imageGrabber.ImageGrabber, { action: this.props.imglink });
+                input = [_react2.default.createElement(Image, { value: this.state.value, imglink: this.props.imglink, key: 'view' }), _react2.default.createElement(_imageGrabber.ImageGrabber, { action: this.props.imglink, onUpload: this.handleImageUpload, key: 'new' })];
             } else {
                 input = _react2.default.createElement(
                     'div',
@@ -16797,18 +16844,16 @@ var ImageGrabber = exports.ImageGrabber = function (_React$Component) {
         };
 
         _this.uploadComplete = function (resp) {
-            console.log(resp);
             _this.setState({
                 precent_complete: 0,
                 is_submitting: false });
-            if (_this.onUpload) {
-                _this.onUpload(resp);
+            if (_this.props.onUpload) {
+                _this.props.onUpload(resp);
             }
             _this.formClose();
         };
 
         _this.uploadFile = function () {
-            console.log("submitting");
             _this.setState({ is_submitting: true });
             var fd = new FormData();
             var dropped_files = _this.state.dropped_files;

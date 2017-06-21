@@ -62,6 +62,9 @@ export default class Results extends React.Component {
             drawcomp = <ResponseDump poll={this.state} responses={this.state.responses}/>
         } else if (this.state.type=="number"){
             drawcomp = <Histogram poll={this.state} responses={this.state.responses}/>
+        } else if (this.state.type=="image") {
+            drawcomp = <ImageList poll={this.state} responses={this.state.responses} 
+                imglink={this.props.history.createHref({pathname:"/img"})}/>
         } else {
             drawcomp = <div>Type: {this.state.type}</div>
         }
@@ -149,4 +152,21 @@ class Histogram extends React.Component {
             
         }        
     }
+}
+
+function Image(props) {
+    if (props.value) {
+        console.log("img", props.value)
+        let url = (props.imglink || "") + "/" + props.value;
+        return <img src={url}/>
+    } else {
+        console.log("no img val")
+        return null
+    }
+}
+
+function ImageList(props) {
+    return <div>{props.responses.map( (x,i) => {
+        return <Image value={x.response} imglink={props.imglink} key={i}/>
+    })}</div>
 }

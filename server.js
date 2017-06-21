@@ -13,7 +13,10 @@ app.use(fileUpload())
 
 app.post("/img", function(req, res) {
     if(req.files) {
-        data.addImage(req.files.file.data).then((imgid) => {
+        data.addImage({
+            blob: req.files.file.data,
+            mimetype: req.files.file.mimetype
+        }).then((imgid) => {
             res.send(JSON.stringify({id: imgid}))
         })
     } else {
@@ -21,7 +24,11 @@ app.post("/img", function(req, res) {
     }
 });
 app.get("/img/:imgid", function(req, res) {
-    res.send("Done!");
+    let imgid = req.params.imgid;
+    let img = data.getImage(imgid).then((x) => {
+        res.contentType('image/png')
+        res.send(x.blob)
+    });
 });
 app.get("*", function(req, res) {
     res.sendFile(__dirname + '/build/index.html');
