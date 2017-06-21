@@ -154,6 +154,13 @@ export class ImageGrabber extends React.Component {
         this.checkReadyToUpload()
     }
 
+    handleClick = (e) => {
+        //e.preventDefault()
+        if(this.fileRef) {
+            $(this.fileRef).click()
+        }
+    }
+
     handleFormShow = (e) => {
         this.setState({is_form_showing: true});
         if(this.formRef) {
@@ -164,7 +171,8 @@ export class ImageGrabber extends React.Component {
     }   
 
     handleFormHide = (e) => {
-        this.setState({is_form_showing: false});
+        this.setState({is_form_showing: false,
+            dropped_files: []});
         if(this.formRef) {
             $(this.formRef).off("hide.bs.modal", this.handleFormHide)
         }
@@ -192,26 +200,31 @@ export class ImageGrabber extends React.Component {
         eventRepeat(events, "onDragOver onDragEnter", this.handleDragOver)
         eventRepeat(events, "onDragLeave onDragEnd onDrop", this.handleDragLeave) 
         eventRepeat(events, "onDrop", this.handleDrop) 
+        eventRepeat(events, "onClick", this.handleClick) 
         let images = this.state.dropped_files.map((file,i) => {
             var URLObj = window.URL || window.webkitURL;
             var source = URLObj.createObjectURL(file);
             return <img src={source} key={i}/>
         })
-        return <div className="modal fade" 
+        return <div className="modal fade"
             data-backdrop="static" role="dialog"
             ref={(form) => {this.formRef = form}}>
-            <div className="modal-dialog">
+            <div className="modal-dialog" style={{"maxWidth": "80%"}}>
                 <div className="modal-content">
                     <div className="modal-header">
                         <button type="button" className="close" data-dismiss="modal">&times;</button>
                         <h4 className="modal-title">Image Selection</h4>
                     </div>
                     <div className="modal-body">
-                        <div className="form-group" {...events}>
+                        <div className="form-group" {...events}
+                            style={{border: "5px dashed #ccc", padding: "10px"}}>
+                            <p>Share an image by 1) pasting the object on this page,
+                            2) dragging the image to this box, or
+                            3) clicking to choose a file from your computer</p>
                             <div id="preview">{images}</div>
-                            <label className="col-sm-2 control-label" htmlFor="job_name">Name</label>
-                            <div className="col-sm-10"><input type="text" className="form-control" id="job_name"/></div>
-                            <input type="file" onChange={this.handleFileChange} />
+                            <input type="file" onChange={this.handleFileChange}     
+                                ref={(ref) => {this.fileRef = ref}}
+                                accept="image/*" style={{display: "none"}}/>
                         </div>
                     </div>
                     <div className="modal-footer">

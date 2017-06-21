@@ -15822,11 +15822,9 @@ var Histogram = function (_React$Component3) {
 
 function Image(props) {
     if (props.value) {
-        console.log("img", props.value);
         var url = (props.imglink || "") + "/" + props.value;
         return _react2.default.createElement('img', { src: url });
     } else {
-        console.log("no img val");
         return null;
     }
 }
@@ -15965,11 +15963,9 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 function Image(props) {
     if (props.value) {
-        console.log("img", props.value);
         var url = (props.imglink || "") + "/" + props.value;
         return _react2.default.createElement('img', { src: url });
     } else {
-        console.log("no img val");
         return null;
     }
 }
@@ -16948,6 +16944,13 @@ var ImageGrabber = exports.ImageGrabber = function (_React$Component) {
             _this.checkReadyToUpload();
         };
 
+        _this.handleClick = function (e) {
+            //e.preventDefault()
+            if (_this.fileRef) {
+                $(_this.fileRef).click();
+            }
+        };
+
         _this.handleFormShow = function (e) {
             _this.setState({ is_form_showing: true });
             if (_this.formRef) {
@@ -16958,7 +16961,8 @@ var ImageGrabber = exports.ImageGrabber = function (_React$Component) {
         };
 
         _this.handleFormHide = function (e) {
-            _this.setState({ is_form_showing: false });
+            _this.setState({ is_form_showing: false,
+                dropped_files: [] });
             if (_this.formRef) {
                 $(_this.formRef).off("hide.bs.modal", _this.handleFormHide);
             }
@@ -16989,6 +16993,7 @@ var ImageGrabber = exports.ImageGrabber = function (_React$Component) {
             eventRepeat(events, "onDragOver onDragEnter", _this.handleDragOver);
             eventRepeat(events, "onDragLeave onDragEnd onDrop", _this.handleDragLeave);
             eventRepeat(events, "onDrop", _this.handleDrop);
+            eventRepeat(events, "onClick", _this.handleClick);
             var images = _this.state.dropped_files.map(function (file, i) {
                 var URLObj = window.URL || window.webkitURL;
                 var source = URLObj.createObjectURL(file);
@@ -17003,7 +17008,7 @@ var ImageGrabber = exports.ImageGrabber = function (_React$Component) {
                     } },
                 _react2.default.createElement(
                     "div",
-                    { className: "modal-dialog" },
+                    { className: "modal-dialog", style: { "maxWidth": "80%" } },
                     _react2.default.createElement(
                         "div",
                         { className: "modal-content" },
@@ -17026,23 +17031,23 @@ var ImageGrabber = exports.ImageGrabber = function (_React$Component) {
                             { className: "modal-body" },
                             _react2.default.createElement(
                                 "div",
-                                _extends({ className: "form-group" }, events),
+                                _extends({ className: "form-group" }, events, {
+                                    style: { border: "5px dashed #ccc", padding: "10px" } }),
+                                _react2.default.createElement(
+                                    "p",
+                                    null,
+                                    "Share an image by 1) pasting the object on this page, 2) dragging the image to this box, or 3) clicking to choose a file from your computer"
+                                ),
                                 _react2.default.createElement(
                                     "div",
                                     { id: "preview" },
                                     images
                                 ),
-                                _react2.default.createElement(
-                                    "label",
-                                    { className: "col-sm-2 control-label", htmlFor: "job_name" },
-                                    "Name"
-                                ),
-                                _react2.default.createElement(
-                                    "div",
-                                    { className: "col-sm-10" },
-                                    _react2.default.createElement("input", { type: "text", className: "form-control", id: "job_name" })
-                                ),
-                                _react2.default.createElement("input", { type: "file", onChange: _this.handleFileChange })
+                                _react2.default.createElement("input", { type: "file", onChange: _this.handleFileChange,
+                                    ref: function ref(_ref) {
+                                        _this.fileRef = _ref;
+                                    },
+                                    accept: "image/*", style: { display: "none" } })
                             )
                         ),
                         _react2.default.createElement(
