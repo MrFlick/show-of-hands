@@ -157,14 +157,25 @@ class Histogram extends React.Component {
 function Image(props) {
     if (props.value) {
         let url = (props.imglink || "") + "/" + props.value;
-        return <img src={url}/>
+        return <img src={url} style={{maxWidth: props.maxWidth + "px"}}/>
     } else {
         return null
     }
 }
 
-function ImageList(props) {
-    return <div>{props.responses.map( (x,i) => {
-        return <Image value={x.response} imglink={props.imglink} key={i}/>
-    })}</div>
+class ImageList extends React.Component {
+    constructor(props) {
+        super(props)
+        this.state = {maxWidth: 400}
+    }
+    handleChange = (e) => {
+        this.setState({maxWidth: e.target.value})
+    }
+    render() {
+        return <div><input type="range" min="50" max="750" step="10" 
+            value={this.state.maxWidth} onChange={this.handleChange}/>
+        <div>{this.props.responses.map( (x,i) => {
+            return <Image value={x.response} imglink={this.props.imglink} key={i} maxWidth={this.state.maxWidth}/>
+        })}</div></div>
+    }
 }

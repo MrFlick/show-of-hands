@@ -15823,21 +15823,51 @@ var Histogram = function (_React$Component3) {
 function Image(props) {
     if (props.value) {
         var url = (props.imglink || "") + "/" + props.value;
-        return _react2.default.createElement('img', { src: url });
+        return _react2.default.createElement('img', { src: url, style: { maxWidth: props.maxWidth + "px" } });
     } else {
         return null;
     }
 }
 
-function ImageList(props) {
-    return _react2.default.createElement(
-        'div',
-        null,
-        props.responses.map(function (x, i) {
-            return _react2.default.createElement(Image, { value: x.response, imglink: props.imglink, key: i });
-        })
-    );
-}
+var ImageList = function (_React$Component4) {
+    _inherits(ImageList, _React$Component4);
+
+    function ImageList(props) {
+        _classCallCheck(this, ImageList);
+
+        var _this7 = _possibleConstructorReturn(this, (ImageList.__proto__ || Object.getPrototypeOf(ImageList)).call(this, props));
+
+        _this7.handleChange = function (e) {
+            _this7.setState({ maxWidth: e.target.value });
+        };
+
+        _this7.state = { maxWidth: 400 };
+        return _this7;
+    }
+
+    _createClass(ImageList, [{
+        key: 'render',
+        value: function render() {
+            var _this8 = this;
+
+            return _react2.default.createElement(
+                'div',
+                null,
+                _react2.default.createElement('input', { type: 'range', min: '50', max: '750', step: '10',
+                    value: this.state.maxWidth, onChange: this.handleChange }),
+                _react2.default.createElement(
+                    'div',
+                    null,
+                    this.props.responses.map(function (x, i) {
+                        return _react2.default.createElement(Image, { value: x.response, imglink: _this8.props.imglink, key: i, maxWidth: _this8.state.maxWidth });
+                    })
+                )
+            );
+        }
+    }]);
+
+    return ImageList;
+}(_react2.default.Component);
 
 /***/ }),
 /* 126 */
@@ -15964,7 +15994,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 function Image(props) {
     if (props.value) {
         var url = (props.imglink || "") + "/" + props.value;
-        return _react2.default.createElement('img', { src: url });
+        return _react2.default.createElement('img', { src: url, style: { width: "100%" } });
     } else {
         return null;
     }

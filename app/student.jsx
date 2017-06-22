@@ -6,7 +6,7 @@ import { ImageGrabber } from './image-grabber'
 function Image(props) {
     if (props.value) {
         let url = (props.imglink || "") + "/" + props.value;
-        return <img src={url}/>
+        return <img src={url} style={{width: "100%"}}/>
     } else {
         return null
     }
