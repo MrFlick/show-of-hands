@@ -36,7 +36,7 @@ app.get("*", function(req, res) {
 
 function getSocketIP(socket) {
     return socket.handshake.headers['x-forwarded-for'] || 
-        socket.handshake.address.address
+        socket.conn.remoteAddress
 }
 
 var getClientIDByIP = (function() {
