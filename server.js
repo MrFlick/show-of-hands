@@ -30,8 +30,14 @@ app.post("/img", function(req, res) {
 app.get("/img/:imgid", function(req, res) {
     let imgid = req.params.imgid;
     let img = data.getImage(imgid).then((x) => {
-        res.contentType('image/png')
-        res.send(x.blob)
+        if (x) {
+            res.contentType(x.mime_type)
+            res.send(x.blob)
+        } else {
+            res.status(404).send("Image Not Found")
+        }
+    }, (err) => {
+        res.status(500).send("Image Retrival Error")
     });
 });
 app.get("*", function(req, res) {
