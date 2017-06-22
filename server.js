@@ -4,6 +4,7 @@ const fileUpload = require('express-fileupload');
 var http = require('http').createServer(app);
 var io = require('socket.io')(http);
 var config = require('./config');
+var sizeOf = require('image-size');
 
 var http_port = config.port || 41742;
 var data = require("./data-layer").getDataStore(config.db_path);
@@ -13,9 +14,12 @@ app.use(fileUpload())
 
 app.post("/img", function(req, res) {
     if(req.files) {
+        let dims = sizeOf(req.files.file.data)
         data.addImage({
             blob: req.files.file.data,
-            mimetype: req.files.file.mimetype
+            mimetype: req.files.file.mimetype,
+            width: dims.width,
+            height: dims.height
         }).then((imgid) => {
             res.send(JSON.stringify({id: imgid}))
         })

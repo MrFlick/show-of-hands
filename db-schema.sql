@@ -28,5 +28,7 @@ CREATE TABLE snippets (
 CREATE TABLE images (
 	img_id INTEGER PRIMARY KEY,
 	mime_type TEXT,
+	width INTEGER,
+	height INTEGER,
 	blob BLOB
 );

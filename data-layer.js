@@ -232,8 +232,10 @@ var DataStore = function(dbpath) {
     };
 
     this.addImage = function(img) {
-        let sql = "INSERT INTO images (mime_type, blob) VALUES (?, ?)";
-        return insert(db, sql, img.mimetype, img.blob).then((result) => {
+        let sql = "INSERT INTO images (mime_type, width, height, blob) " + 
+            "VALUES (?, ?, ?, ?)";
+        return insert(db, sql, img.mimetype, img.width, img.height, 
+            img.blob).then((result) => {
             return result.newID;
         });
     }
