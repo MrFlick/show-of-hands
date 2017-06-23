@@ -15967,6 +15967,8 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _react = __webpack_require__(4);
@@ -16211,6 +16213,34 @@ function SnippetList(props) {
     }
 }
 
+function Icon(props) {
+    var icon = props.icon;
+    var other = Object.assign({}, props);
+    delete other.icon;
+    return _react2.default.createElement('span', _extends({ className: "fa fa-" + icon }, other, { 'aria-hidden': 'true' }));
+}
+
+// from https://stackoverflow.com/a/33928558/2372064
+function copyToClipboard(text) {
+    if (window.clipboardData && window.clipboardData.setData) {
+        // IE specific code path to prevent textarea being shown while dialog is visible.
+        return clipboardData.setData("Text", text);
+    } else if (document.queryCommandSupported && document.queryCommandSupported("copy")) {
+        var textarea = document.createElement("textarea");
+        textarea.textContent = text;
+        textarea.style.position = "fixed"; // Prevent scrolling to bottom of page in MS Edge.
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+            return document.execCommand("copy"); // Security exception may be thrown by some browsers.
+        } catch (ex) {
+            console.warn("Copy to clipboard failed.", ex);
+            return false;
+        } finally {
+            document.body.removeChild(textarea);
+        }
+    }
+}
 function Snippet(props) {
     var snippet = props.snippet;
     return _react2.default.createElement(
@@ -16219,7 +16249,22 @@ function Snippet(props) {
         _react2.default.createElement(
             'div',
             { className: 'card-header' },
-            snippet.title
+            _react2.default.createElement(
+                'div',
+                { className: 'float-left' },
+                snippet.title
+            ),
+            _react2.default.createElement(
+                'div',
+                { className: 'float-right' },
+                _react2.default.createElement(
+                    'button',
+                    { onClick: function onClick() {
+                            return copyToClipboard(snippet.code);
+                        } },
+                    _react2.default.createElement(Icon, { icon: 'copy' })
+                )
+            )
         ),
         _react2.default.createElement(
             'div',

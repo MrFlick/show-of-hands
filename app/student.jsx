@@ -124,10 +124,42 @@ function SnippetList(props) {
     }
 }
 
+function Icon(props) {
+    let icon = props.icon;
+    let other = Object.assign({}, props);
+    delete other.icon
+    return <span className={"fa fa-" + icon} {...other} aria-hidden="true"></span>
+}
+
+// from https://stackoverflow.com/a/33928558/2372064
+function copyToClipboard(text) {
+    if (window.clipboardData && window.clipboardData.setData) {
+        // IE specific code path to prevent textarea being shown while dialog is visible.
+        return clipboardData.setData("Text", text); 
+
+    } else if (document.queryCommandSupported && document.queryCommandSupported("copy")) {
+        var textarea = document.createElement("textarea");
+        textarea.textContent = text;
+        textarea.style.position = "fixed";  // Prevent scrolling to bottom of page in MS Edge.
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+            return document.execCommand("copy");  // Security exception may be thrown by some browsers.
+        } catch (ex) {
+            console.warn("Copy to clipboard failed.", ex);
+            return false;
+        } finally {
+            document.body.removeChild(textarea);
+        }
+    }
+}
+
 function Snippet(props) {
     let snippet = props.snippet;
     return <div className="card">
-        <div className="card-header">{snippet.title}</div>
+        <div className="card-header">
+        <div className="float-left">{snippet.title}</div>
+        <div className="float-right"><button onClick={()=>copyToClipboard(snippet.code)}><Icon icon="copy"/></button></div></div>
         <div className="card-block"><pre>{snippet.code}</pre></div>
     </div>; 
 }
