@@ -26,12 +26,15 @@ module.exports = {
         extensions: ['.js', '.jsx']
     },
     module: {
-        loaders: [
+        rules: [
             {
                 test: /\.jsx$/,
-                loader: 'babel-loader',
-                query: {
-                    presets: ['es2015', 'react', 'stage-0']
+                use: {
+                    loader: 'babel-loader',
+                    options: { 
+                        presets: ['@babel/preset-env', '@babel/preset-react'],
+                        plugins: ['@babel/plugin-proposal-class-properties']
+                    }
                 }
             }
         ]
