@@ -1,6 +1,6 @@
 import React from 'react';
 import debounce from 'lodash/debounce';
-import { CSSTransitionGroup } from 'react-transition-group'
+import { TransitionGroup, CSSTransition } from 'react-transition-group'
 import { ImageGrabber } from './image-grabber'
 
 function Image(props) {
@@ -114,11 +114,11 @@ export default class Student extends React.Component {
 
 function SnippetList(props) {
     if (props.snippets.length) {
-        return <div><CSSTransitionGroup transitionName="list"
-        transitionEnterTimeout={500}
-        transitionLeaveTimeout={300}>{props.snippets.map((row) => {
-            return <Snippet key={row.snippet_id} snippet={row}/>;
-        })}</CSSTransitionGroup></div>
+        return <div><TransitionGroup transitionName="list">{props.snippets.map((row) => {
+            return <CSSTransition timeout={{ enter: 500, exit:300 }} key={row.snippet_id}>
+                <Snippet snippet={row}/>
+            </CSSTransition>;
+        })}</TransitionGroup></div>
     } else {
         return <p>No snippets currently shared</p>
     }
@@ -167,11 +167,11 @@ function Snippet(props) {
 function PollList(props) {
     var socket = props.socket;
     if (props.polls.length) {
-        return <div><CSSTransitionGroup transitionName="list"
-        transitionEnterTimeout={500}
-        transitionLeaveTimeout={300}>{props.polls.map((row) => {
-            return <Poll key={row.poll_id} poll={row} socket={socket} imglink={props.imglink}></Poll>;
-        })}</CSSTransitionGroup></div>
+        return <div><TransitionGroup transitionName="list">{props.polls.map((row) => {
+            return <CSSTransition timeout={{enter: 500, exit: 300}} key={row.poll_id}>
+                <Poll poll={row} socket={socket} imglink={props.imglink}></Poll>
+            </CSSTransition>;
+        })}</TransitionGroup></div>
     } else {
         return <p>No polls curently open</p>
     }
