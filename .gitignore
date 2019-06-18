@@ -1,6 +1,7 @@
 config.js
 node_modules/
 db/
+build/
 .DS_Store
 *.swp
 *.swo
