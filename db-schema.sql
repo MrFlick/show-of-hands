@@ -1,6 +1,3 @@
---sqlite3 db/data.sqlite3 < db-schema.sql
---sqlite3 db/data.sqlite3 < db-sample.sql
-
 CREATE TABLE polls (
 	poll_id INTEGER PRIMARY KEY,
 	title TEXT NOT NULL,

@@ -1,6 +1,6 @@
 PRAGMA foreign_keys=OFF;
 BEGIN TRANSACTION;
-CREATE TABLE snippets (
+CREATE TABLE IF NOT EXISTS snippets (
 	snippet_id INTEGER PRIMARY KEY,
 	title TEXT,
 	code TEXT,
