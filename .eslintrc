@@ -1,5 +1,5 @@
 {
-  parser: "babel-eslint",
+  "parser": "babel-eslint",
   "plugins": [
     "react"
   ],
@@ -19,5 +19,8 @@
   "rules": {
     "react/prop-types": 0
   },
-  "extends": ["eslint:recommended", "plugin:react/recommended"]
+  "extends": ["eslint:recommended", "plugin:react/recommended"],
+  "settings": {
+    "react": {"version": "detect"}
+  }
 }
