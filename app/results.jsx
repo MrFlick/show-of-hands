@@ -121,19 +121,25 @@ class Histogram extends React.Component {
         var min = 0;
         var max = 0;
         var mean = 0;
-        var bins = new Array(this.state.bins+1).fill(0);
+        var bins = [];
         var empty = true;
         if (vals.length) {
             min = Math.min.apply(null, vals);
             max = Math.max.apply(null, vals);
             mean = vals.reduce((a,b) => (a+b))/vals.length;
-            vals.forEach((x) => {
-              var b = Math.floor((x-min)/(max-min)*this.state.bins);
-                bins[b] = (bins[b] || 0) + 1;
-            })
+            if (max-min>.001) {
+                bins = Array(this.state.bins).fill(0);
+                vals.forEach((x) => {
+                    var b = Math.floor((x-min)/(max-min)*bins.length);
+                    if (b > bins.length-1) {b = bins.length-1}
+                    bins[b] = (bins[b] || 0) + 1;
+                })
+            } else {
+                bins = [vals.length]
+            }
             empty = false;
         }
-        var r = (i) => {return Math.round((min+i*(max-min)/this.state.bins)*100)/100}
+        var r = (i) => {return Math.round((min+i*(max-min)/bins.length)*100)/100}
         var maxBins = Math.max.apply(null, bins.filter((x)=>!isNaN(x)));
         return {min: min, max: max, mean: mean, n: vals.length, 
             bins:bins.map((x, i)=>{return {n:x, p:x/maxBins, r:[r(i)+"-"+r(i+1)]}}), empty: empty}
@@ -144,7 +150,7 @@ class Histogram extends React.Component {
             return <p>No responses</p>
         } else {
             return <div>
-                <p>Mean: {stats.mean}</p>
+                <p>Mean: {stats.mean}, Min: {stats.min}, Max: {stats.max}</p>
                 <dl>{stats.bins.map((x, i) => {
                 return <dd className="percentage" key={i}><span className="text">{x.r} ({x.n})</span>
                 <span className="bar" style={{width: (x.p*100) + "%"}}></span></dd>
