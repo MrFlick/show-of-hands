@@ -93,6 +93,7 @@ function upsert(db, table, keys, fields, values) {
 
 var DataStore = function(dbpath) {
 	var db = new sqlite3.Database(dbpath);
+	const viewResults = new Set();
 
 	this.getPrompts = function() {
 		return getAll(db, "SELECT * FROM prompts");
@@ -103,7 +104,7 @@ var DataStore = function(dbpath) {
             "(select count(*) from poll_responses " + 
             "where poll_responses.poll_id = polls.poll_id) as response_count " + 
             "FROM polls"
-		if (!!!include_closed) {
+		if (!include_closed) {
 			sql = sql + " WHERE status=1"
 		}
 		return getAll(db, sql).then((polls) => {
@@ -184,6 +185,18 @@ var DataStore = function(dbpath) {
         return getAll(db, sql, poll.poll_id) 
     }
 
+	this.sharePollResults = function(poll) {
+		viewResults.add(poll.poll_id);
+		return Promise.resolve([...viewResults]);
+	}
+	this.unsharePollResults = function(poll) {
+		viewResults.delete(poll.poll_id);
+		return Promise.resolve([...viewResults]);
+	}
+	this.getSharedResults = function() {
+		return Promise.resolve([...viewResults]);
+	}
+
     this.addSnippet = function(snip) {
         return insert(db, "INSERT INTO snippets (title, code) " +
             "values (?, ?) ", snip.title, snip.code).then((result) => {
@@ -193,7 +206,7 @@ var DataStore = function(dbpath) {
 
 	this.getSnippets = function(include_closed) {
 		let sql = "SELECT * FROM snippets"
-		if (!!!include_closed) {
+		if (!include_closed) {
 			sql = sql + " WHERE status=1"
 		}
 		sql = sql + " ORDER BY rowid DESC"
