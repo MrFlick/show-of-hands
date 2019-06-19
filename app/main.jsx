@@ -24,7 +24,7 @@ ReactDOM.render(
     <Site><BrowserRouter basename={PUB_STEM}><Switch>
         <Route exact path="/" render={(props) => <Student socket={socket} {...props}/>}/>
         <Route path="/podium" render={(props) => <Presenter socket={socket} {...props}/>}/>
-        <Route path="/results/:pollid" render={(props) => <Results socket={socket} {...props}/>}/>
+        <Route path="/results/:pollid" render={(props) => <Results socket={socket} poll_id = {props.match.params.pollid} />}/>
     </Switch></BrowserRouter></Site>, 
     document.getElementById('root')
 );

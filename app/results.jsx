@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 export default class Results extends React.Component { 
     constructor(props) {
         super(props)
-        let poll_id = props.match.params.pollid
+        let poll_id = props.poll_id
         this.state = {
             poll_id: poll_id,
             responses: []
