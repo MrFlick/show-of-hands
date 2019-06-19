@@ -11,6 +11,7 @@ const socket = io("/", {"path": `${PUB_STEM}socket.io`});
 import Student from './student';
 import Presenter from './presenter';
 import Results from './results';
+import ResultView from './resultview';
 import Site from './site';
 import { getClientID } from './guid'
 
@@ -24,6 +25,7 @@ ReactDOM.render(
     <Site><BrowserRouter basename={PUB_STEM}><Switch>
         <Route exact path="/" render={(props) => <Student socket={socket} {...props}/>}/>
         <Route path="/podium" render={(props) => <Presenter socket={socket} {...props}/>}/>
+        <Route path="/results" exact render={(props) => <ResultView socket={socket} {...props}/>}/>
         <Route path="/results/:pollid" render={(props) => <Results socket={socket} poll_id = {props.match.params.pollid} />}/>
     </Switch></BrowserRouter></Site>, 
     document.getElementById('root')
