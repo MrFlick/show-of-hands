@@ -29,7 +29,7 @@ app.post("/img", function(req, res) {
 });
 app.get("/img/:imgid", function(req, res) {
     let imgid = req.params.imgid;
-    let img = data.getImage(imgid).then((x) => {
+    data.getImage(imgid).then((x) => {
         if (x) {
             res.contentType(x.mime_type)
             res.send(x.blob)
@@ -37,7 +37,7 @@ app.get("/img/:imgid", function(req, res) {
             res.status(404).send("Image Not Found")
         }
     }, (err) => {
-        res.status(500).send("Image Retrival Error")
+        res.status(500).send(`Image Retrival Error ${err}`)
     });
 });
 app.get("*", function(req, res) {
@@ -89,12 +89,9 @@ var getClientIDByGUID = (function() {
 let user_count = 0;
 io.on('connection', function(socket) {
     user_count++;
-    let remote_ip = getSocketIP(socket)
     let clientID = -1;
-    console.log("a user connected (" + user_count + ") " + remote_ip);
     socket.on("disconnect", function() {
         user_count--;
-        console.log("a user disconnected (" + user_count + ")");
     });
     socket.emit("who are you")
     getClientIDByGUID(socket, function(id) {
@@ -207,6 +204,9 @@ io.on('connection', function(socket) {
             socket.emit("snippet list", snips)
         });
     });
+    socket.on("request user count", function() {
+        socket.emit("user count", {users: user_count})
+    })
 });
 
 http.listen(http_port, function() {
