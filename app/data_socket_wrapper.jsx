@@ -89,10 +89,14 @@ export class AdminPollSocketData extends SocketDataWrapper {
         super("poll", socket, onchange)
         this.requestClosePoll = this.requestClosePoll.bind(this)
         this.requestOpenPoll = this.requestOpenPoll.bind(this)
+        this.requestSharePoll = this.requestSharePoll.bind(this)
+        this.requestUnsharePoll = this.requestUnsharePoll.bind(this)
         this.handlePollResponse = this.handlePollResponse.bind(this)
         this.message_names = Object.assign(this.message_names, {
             open: "open poll",
             close: "close poll",
+            share: "share poll results",
+            unshare: "unshare poll results",
         })
         this.socket_events = Object.assign(this.socket_events, {
             "new poll response": this.handlePollResponse,
@@ -105,6 +109,12 @@ export class AdminPollSocketData extends SocketDataWrapper {
     }
     requestClosePoll(item) {
         this.request("close", item)
+    }
+    requestSharePoll(item) {
+        this.request("share", item)
+    }
+    requestUnsharePoll(item) {
+        this.request("unshare", item)
     }
     handlePollResponse(item) {
         if(item.action=="insert") {

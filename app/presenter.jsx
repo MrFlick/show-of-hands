@@ -324,6 +324,8 @@ class Poll extends React.Component {
         this.closePoll = this.closePoll.bind(this);
         this.editPoll = this.editPoll.bind(this);
         this.removePoll = this.removePoll.bind(this);
+        this.sharePoll = this.sharePoll.bind(this);
+        this.unsharePoll = this.unsharePoll.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
     }
     openPoll(e) {
@@ -333,6 +335,14 @@ class Poll extends React.Component {
     closePoll(e) {
         e.preventDefault()
         this.connector.requestClosePoll(this.props.poll);
+    }
+    sharePoll(e) {
+        e.preventDefault()
+        this.connector.requestSharePoll(this.props.poll);
+    }
+    unsharePoll(e) {
+        e.preventDefault()
+        this.connector.requestUnsharePoll(this.props.poll);
     }
     removePoll(e) {
         e.preventDefault()
@@ -346,18 +356,20 @@ class Poll extends React.Component {
         e.preventDefault();
     }
     render() {
-        let button = null;
         let poll = this.props.poll;
+        let openButton = null;
         if (poll.status == 0) {
-            button = <button onClick={this.openPoll}>Open</button>
+            openButton = <button onClick={this.openPoll}>Open</button>
         } else if(poll.status ==1) {
-            button = <button onClick={this.closePoll}>Close</button>
+            openButton = <button onClick={this.closePoll}>Close</button>
         } else if (poll.status == 2) {
-            button = <button onClick={this.openPoll}>Re-open</button>
+            openButton = <button onClick={this.openPoll}>Re-open</button>
         }
         return <div className="card"><form onSubmit={this.handleSubmit}>
             <div className={classNames("card-header", {"open-poll": poll.status==1})}>{poll.title} ({poll.response_count})</div>
-            <div className="card-block"><p>{button}&nbsp; 
+            <div className="card-block"><p>{openButton}&nbsp; 
+                <button onClick={this.sharePoll}>Share</button>&nbsp;
+                <button onClick={this.unsharePoll}>Unshare</button>&nbsp;
                 <button onClick={this.editPoll}>Edit</button>&nbsp;
                 <button onClick={this.removePoll}>Delete</button>&nbsp;
                 <Link to={`/results/${poll.poll_id}`}>results</Link></p></div>
