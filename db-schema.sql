@@ -4,6 +4,7 @@ CREATE TABLE polls (
 	type TEXT NOT NULL,
 	options TEXT,
 	status INTEGER NOT NULL DEFAULT 0,
+	shared INTEGER NOT NULL DEFAULT 0,
 	open_seq INTEGER NOT NULL DEFAULT 0
 );
 

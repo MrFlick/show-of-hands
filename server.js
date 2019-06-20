@@ -124,12 +124,18 @@ io.on('connection', function(socket) {
         })
     });
     socket.on("share poll results", function(msg) {
-        data.sharePollResults(msg).then((polls) => {
+        data.sharePoll(msg).then((poll) => {
+            io.emit("update poll", poll)
+            return data.getSharedPolls()
+        }).then((polls) => {
             io.emit("show results", polls)
         });
     })
     socket.on("unshare poll results", function(msg) {
-        data.unsharePollResults(msg).then((polls) => {
+        data.unsharePoll(msg).then((poll) => {
+            io.emit("update poll", poll)
+            return data.getSharedPolls()
+        }).then((polls) => {
             io.emit("show results", polls)
         });
     })
@@ -190,7 +196,7 @@ io.on('connection', function(socket) {
         });
     });
     socket.on("request poll shared list", function() {
-        data.getSharedResults().then((polls) => {
+        data.getSharedPolls().then((polls) => {
             socket.emit("show results", polls)
         });
     });

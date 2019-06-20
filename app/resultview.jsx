@@ -37,8 +37,8 @@ export default class ResultView extends React.Component {
 function ResultsList(props) {
     var socket = props.socket;
     if (props.polls.length) {
-        return <div>{props.polls.map((row) => {
-            return <Results key={row} poll_id={row} socket={socket} />
+        return <div>{props.polls.map((poll) => {
+            return <Results key={poll.poll_id} poll_id={poll.poll_id} socket={socket} />
         })}</div>
     } else {
         return <p>No results currently shared</p>

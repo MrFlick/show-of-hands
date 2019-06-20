@@ -93,7 +93,6 @@ function upsert(db, table, keys, fields, values) {
 
 var DataStore = function(dbpath) {
 	var db = new sqlite3.Database(dbpath);
-	const viewResults = new Set();
 
 	this.getPrompts = function() {
 		return getAll(db, "SELECT * FROM prompts");
@@ -159,6 +158,18 @@ var DataStore = function(dbpath) {
                 return this.getPoll(poll.poll_id)
         });
     };
+	this.sharePoll = function(poll) {
+        return update(db, "UPDATE polls SET shared=1 " + 
+            "WHERE poll_id=?", poll.poll_id).then(() => {
+                return this.getPoll(poll.poll_id)
+            });
+    };
+	this.unsharePoll = function(poll) {
+        return update(db, "UPDATE polls SET shared=0 WHERE poll_id=?", 
+            poll.poll_id).then(() => {
+                return this.getPoll(poll.poll_id)
+        });
+    };
 	this.updatePoll = function(poll) {
         return update(db, "UPDATE polls SET title=?, type=?, options=? WHERE poll_id=?", 
             poll.title, poll.type, poll.options, poll.poll_id).then(() => {
@@ -174,7 +185,6 @@ var DataStore = function(dbpath) {
 				return resp;
 			});
     };
-
     this.deletePoll = function(poll) {
         let sql = "DELETE FROM polls WHERE poll_id=?";
         return update(db, sql, poll.poll_id)
@@ -185,16 +195,10 @@ var DataStore = function(dbpath) {
         return getAll(db, sql, poll.poll_id) 
     }
 
-	this.sharePollResults = function(poll) {
-		viewResults.add(poll.poll_id);
-		return Promise.resolve([...viewResults]);
-	}
-	this.unsharePollResults = function(poll) {
-		viewResults.delete(poll.poll_id);
-		return Promise.resolve([...viewResults]);
-	}
-	this.getSharedResults = function() {
-		return Promise.resolve([...viewResults]);
+	this.getSharedPolls = function() {
+		let sql = "SELECT * FROM polls WHERE shared=1"
+		sql = sql + " ORDER BY rowid DESC"
+		return getAll(db, sql);
 	}
 
     this.addSnippet = function(snip) {
