@@ -365,11 +365,16 @@ class Poll extends React.Component {
         } else if (poll.status == 2) {
             openButton = <button onClick={this.openPoll}>Re-open</button>
         }
+        let shareButton = null;
+        if (poll.shared == 0) {
+            shareButton = <button onClick={this.sharePoll}>Share</button>
+        } else {
+            shareButton = <button onClick={this.unsharePoll}>Unshare</button>
+        }
         return <div className="card"><form onSubmit={this.handleSubmit}>
             <div className={classNames("card-header", {"open-poll": poll.status==1})}>{poll.title} ({poll.response_count})</div>
             <div className="card-block"><p>{openButton}&nbsp; 
-                <button onClick={this.sharePoll}>Share</button>&nbsp;
-                <button onClick={this.unsharePoll}>Unshare</button>&nbsp;
+                {shareButton}&nbsp;
                 <button onClick={this.editPoll}>Edit</button>&nbsp;
                 <button onClick={this.removePoll}>Delete</button>&nbsp;
                 <Link to={`/results/${poll.poll_id}`}>results</Link></p></div>
