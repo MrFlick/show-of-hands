@@ -13,7 +13,8 @@ export default class Results extends React.Component {
         this.socket_events = {
             "new poll response": (resp) => this.newResponse(resp),
             "poll responses list": (resp) => this.refreshResponses(resp),
-            "poll detail": (resp) => this.refreshPoll(resp)
+            "poll detail": (resp) => this.refreshPoll(resp),
+            "update poll": (resp) => this.refreshPoll(resp)
         }
     }
     newResponse(resp) {
@@ -37,10 +38,14 @@ export default class Results extends React.Component {
         }
     }
     refreshPoll(resp) {
-        this.setState(resp);
+        if (resp.poll_id == this.state.poll_id) {
+            this.setState(resp);
+        }
     }
     refreshResponses(resp) {
-        this.setState({responses: resp});
+        if (resp.poll_id == this.state.poll_id) {
+            this.setState({responses: resp.responses});
+        }
     }
     componentDidMount() {
         Object.keys(this.socket_events).map((k)=> {

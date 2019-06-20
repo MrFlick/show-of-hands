@@ -192,7 +192,9 @@ var DataStore = function(dbpath) {
 
     this.getPollResponses = function(poll) {
         let sql = "SELECT rowid, response FROM poll_responses WHERE poll_id=?"
-        return getAll(db, sql, poll.poll_id) 
+        return getAll(db, sql, poll.poll_id).then((responses) => {
+			return {poll_id: poll.poll_id, responses}
+		})
     }
 
 	this.getSharedPolls = function() {
