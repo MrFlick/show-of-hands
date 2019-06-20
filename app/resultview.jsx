@@ -6,6 +6,7 @@ export default class ResultView extends React.Component {
         super(props)
         this.state = {polls: []};
         this.socket = props.socket
+        this.history = props.history
         this.socket_events = {    
             "show results": (polls) => this.refreshPolls(polls),
         }
@@ -28,17 +29,18 @@ export default class ResultView extends React.Component {
         return <div className="row">
             <div className="col-12">
                 <h2>Results</h2>
-                <ResultsList polls={this.state.polls} socket={this.socket} />
+                <ResultsList polls={this.state.polls} socket={this.socket} history={this.history}/>
             </div>
         </div>
     }
 }
 
 function ResultsList(props) {
-    var socket = props.socket;
+    let socket = props.socket;
+    let history = props.history;
     if (props.polls.length) {
         return <div>{props.polls.map((poll) => {
-            return <Results key={poll.poll_id} poll_id={poll.poll_id} socket={socket} />
+            return <Results key={poll.poll_id} poll_id={poll.poll_id} socket={socket} history={history}/>
         })}</div>
     } else {
         return <p>No results currently shared</p>

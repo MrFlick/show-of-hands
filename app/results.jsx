@@ -1,5 +1,4 @@
 import React from 'react';
-import { Link } from 'react-router-dom';  
 
 export default class Results extends React.Component { 
     constructor(props) {
@@ -73,8 +72,7 @@ export default class Results extends React.Component {
         } else {
             drawcomp = <div>Type: {this.state.type}</div>
         }
-        return <div><Link to="/podium">Return</Link>
-        <h2>{this.state.title || "Poll"}</h2>{drawcomp}</div>
+        return <div><h2>{this.state.title || "Poll"}</h2>{drawcomp}</div>
     }
 }
 
