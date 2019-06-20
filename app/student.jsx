@@ -114,8 +114,8 @@ export default class Student extends React.Component {
 
 function SnippetList(props) {
     if (props.snippets.length) {
-        return <div><TransitionGroup transitionName="list">{props.snippets.map((row) => {
-            return <CSSTransition timeout={{ enter: 500, exit:300 }} key={row.snippet_id}>
+        return <div><TransitionGroup>{props.snippets.map((row) => {
+            return <CSSTransition timeout={{ enter: 500, exit:300 }} key={row.snippet_id} classNames="list">
                 <Snippet snippet={row}/>
             </CSSTransition>;
         })}</TransitionGroup></div>
@@ -167,8 +167,8 @@ function Snippet(props) {
 function PollList(props) {
     var socket = props.socket;
     if (props.polls.length) {
-        return <div><TransitionGroup transitionName="list">{props.polls.map((row) => {
-            return <CSSTransition timeout={{enter: 500, exit: 300}} key={row.poll_id}>
+        return <div><TransitionGroup>{props.polls.map((row) => {
+            return <CSSTransition timeout={{enter: 500, exit: 300}} key={row.poll_id} classNames="list">
                 <Poll poll={row} socket={socket} imglink={props.imglink}></Poll>
             </CSSTransition>;
         })}</TransitionGroup></div>
