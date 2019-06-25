@@ -20,13 +20,12 @@ async function addItem(title, body) {
     return data.addSnippet({title: title, code: body})
 }
 
-
 function importFile(filename) {
     fs.readFile(filename, 'utf8', function(err, contents) {
-    const lines = contents.split(/\n/)
+    const lines = contents.split(/\r?\n/)
     let body = [];
     let title = ""
-    async function flush() {
+    async function flush(title, body) {
         while (body.length && body[0]=="") {
             body.shift();
         }
@@ -35,19 +34,24 @@ function importFile(filename) {
         }
         if (body.length) {
             await addItem(title, body.join("\n"));
+        } else {
+            await null;
         }
-        body = [];
-        title = "";
     }
-    lines.forEach((line) => {
+    (async () => {
+    for(var i=0; i<lines.length; i++) {
+        let line = lines[i]
         if (line.startsWith("##")) {
-            flush();
+            await flush(title, body);
+            body = [];
+            title = "";
             title = line.substring(2).trim()
         } else {
             body.push(line)
         }
+    }
+    await flush(title, body);
+    })();
     })
-    flush();
-})
 }
 importFile(filename);
