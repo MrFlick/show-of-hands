@@ -40,7 +40,8 @@ module.exports = {
         ]
     },
     stats: {
-        colors: true
+        colors: true,
+        errorDetails: true,
     },
     devtool: 'source-map'
 }
