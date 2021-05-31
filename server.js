@@ -6,7 +6,7 @@ var io = require('socket.io')(http);
 var config = require('./config');
 var sizeOf = require('image-size');
 
-var http_port = config.port || 41742;
+var http_port = process.env.PORT || config.port || 41742;
 var data = require("./data-layer").getDataStore(config.db_path);
 
 app.use(express.static(__dirname + '/build'))
