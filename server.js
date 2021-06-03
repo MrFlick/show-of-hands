@@ -50,6 +50,13 @@ app.post("/set-slide", (req, res) => {
     io.emit("presenter slide", {slide_id: presenterSlideId});
     res.sendStatus(200);
 })
+app.post("/open-snippet", (req, res) => {
+    let tag = req.body.tag;
+    data.openSnippetByTag(tag).then((snip) => {
+        if (snip) io.emit("open snippet", snip)
+    })
+    res.sendStatus(200);
+})
 app.get("*", function(req, res) {
     res.sendFile(__dirname + '/build/index.html');
 });

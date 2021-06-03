@@ -75,11 +75,22 @@ class SnippetList extends React.Component {
     }
 }
 
+const objectMap = (obj, fn) =>
+  Object.fromEntries(
+    Object.entries(obj).map(
+      ([k, v], i) => [k, fn(v, k, i)]
+    )
+  )
+
+function nullToUndef(obj) {
+    return objectMap(obj, x => x === null ? undefined : x)
+}
+
 class SnippetForm extends React.Component {
     constructor(props) {
         super(props);
         this.connector = props.connector;
-        this.orig_state = props.snippet || {title: "", code: ""}
+        this.orig_state = nullToUndef(props.snippet || {title: "", code: "", tag: ""})
         this.state = Object.assign(this.orig_state, {action: props.action || "new"})
         this.handleInputChange = this.handleInputChange.bind(this)
         this.handleStatusChange = this.handleStatusChange.bind(this)
@@ -111,7 +122,7 @@ class SnippetForm extends React.Component {
     }
     handleAdd() {
         this.connector.requestAdd(this.state)
-        this.setState({title: "", code: ""})
+        this.setState({title: "", code: "", tag: ""})
         this.handleStatusChange()
     }
 
@@ -134,7 +145,10 @@ class SnippetForm extends React.Component {
             <div className="card-header">
                 <input name="title" value={this.state.title} 
                     onChange={this.handleInputChange}
-                    style={{width: "100%"}} />
+                    style={{width: "100%"}} placeholder="(title)"/>
+                <input name="tag" value={this.state.tag} 
+                    onChange={this.handleInputChange}
+                    style={{width: "100%"}} placeholder="(tag)" />
             </div>
             <div className="card-block">
                 <textarea name="code" value={this.state.code} 
@@ -187,7 +201,10 @@ class Snippet extends React.Component {
             button = <button onClick={this.openSnippet}>Re-open</button>
         }
         return <div className="card"><form onSubmit={this.handleSubmit}>
-            <div className={classNames("card-header", {"open-poll": snip.status==1})}>{snip.title}</div>
+            <div className={classNames("card-header", {"open-poll": snip.status==1})}>
+                <div>{snip.title}</div>
+                {snip.tag && <div>(#{snip.tag})</div>}
+            </div>
             <div className="card-block"><pre>{snip.code}</pre></div>
             <div className="card-block">{button}&nbsp; 
                 <button onClick={this.editSnippet}>Edit</button>&nbsp;

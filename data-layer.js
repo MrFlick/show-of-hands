@@ -204,8 +204,8 @@ var DataStore = function(dbpath) {
 	}
 
     this.addSnippet = function(snip) {
-        return insert(db, "INSERT INTO snippets (title, code) " +
-            "values (?, ?) ", snip.title, snip.code).then((result) => {
+        return insert(db, "INSERT INTO snippets (title, code, tag) " +
+            "values (?, ?, ?) ", snip.title, snip.code, snip.tag).then((result) => {
                 return this.getSnippet(result.newID)
             })
     };
@@ -222,6 +222,9 @@ var DataStore = function(dbpath) {
 	this.getSnippet = function(snippet_id) {
 		return getOne(db, "SELECT * FROM snippets where snippet_id=?", snippet_id);
 	};
+	this.getSnippetByTag = function(tag) {
+		return getOne(db, "SELECT * FROM snippets where tag=?", tag);
+	};
 
 	this.openSnippet = function(snip) {
         return update(db, "UPDATE snippets SET status=1, " + 
@@ -229,6 +232,14 @@ var DataStore = function(dbpath) {
             "WHERE snippet_id=?", snip.snippet_id).then(() => {
                 return this.getSnippet(snip.snippet_id)
             });
+    };
+	this.openSnippetByTag = function(tag) {
+		return this.getSnippetByTag(tag).then(
+			snip => {
+				if(snip) return this.openSnippet(snip)
+				return Promise.resolve(null)
+			}
+		)
     };
 
 	this.closeSnippet = function(snip) {
@@ -239,8 +250,8 @@ var DataStore = function(dbpath) {
     };
 
 	this.updateSnippet = function(snip) {
-        return update(db, "UPDATE snippets SET title=?, code=? WHERE snippet_id=?", 
-            snip.title, snip.code, snip.snippet_id).then(() => {
+        return update(db, "UPDATE snippets SET title=?, code=?, tag=? WHERE snippet_id=?", 
+            snip.title, snip.code, snip.tag, snip.snippet_id).then(() => {
                 return this.getSnippet(snip.snippet_id)
         });
     };

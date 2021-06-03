@@ -5,7 +5,8 @@ CREATE TABLE polls (
 	options TEXT,
 	status INTEGER NOT NULL DEFAULT 0,
 	shared INTEGER NOT NULL DEFAULT 0,
-	open_seq INTEGER NOT NULL DEFAULT 0
+	open_seq INTEGER NOT NULL DEFAULT 0,
+	tag TEXT
 );
 
 CREATE TABLE poll_responses (
@@ -20,7 +21,8 @@ CREATE TABLE snippets (
 	title TEXT,
 	code TEXT,
 	status INTEGER NOT NULL DEFAULT 0,
-	open_seq INTEGER NOT NULL DEFAULT 0
+	open_seq INTEGER NOT NULL DEFAULT 0,
+	tag TEXT
 );
 
 CREATE TABLE images (
