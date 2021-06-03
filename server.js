@@ -10,7 +10,11 @@ var http_port = process.env.PORT || config.port || 41742;
 var data = require("./data-layer").getDataStore(config.db_path);
 
 app.use(express.static(__dirname + '/build'))
+app.use('/s', express.static(__dirname + '/slides'))
+app.use(express.urlencoded({extended: false}))
 app.use(fileUpload())
+
+let presenterSlideId = 0;
 
 app.post("/img", function(req, res) {
     if(req.files) {
@@ -40,6 +44,12 @@ app.get("/img/:imgid", function(req, res) {
         res.status(500).send(`Image Retrival Error ${err}`)
     });
 });
+app.post("/set-slide", (req, res) => {
+    // update global value
+    presenterSlideId = req.body.slide;
+    io.emit("presenter slide", {slide_id: presenterSlideId});
+    res.sendStatus(200);
+})
 app.get("*", function(req, res) {
     res.sendFile(__dirname + '/build/index.html');
 });
@@ -212,7 +222,15 @@ io.on('connection', function(socket) {
     });
     socket.on("request user count", function() {
         socket.emit("user count", {users: user_count})
-    })
+    });
+    socket.on("request slides", function() {
+        data.getSlides().then((slides) => {
+            socket.emit("slides", slides)
+        })
+    });
+    socket.on("request presenter slide", function() {
+        socket.emit("presenter slide", {slide_id: presenterSlideId})
+    });
 });
 
 http.listen(http_port, function() {

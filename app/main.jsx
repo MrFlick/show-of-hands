@@ -11,6 +11,7 @@ import Student from './student';
 import Presenter from './presenter';
 import Results from './results';
 import ResultView from './resultview';
+import SlideView from './slides';
 import Site from './site';
 import NavBar from './navbar';
 import { getClientID } from './guid'
@@ -26,6 +27,7 @@ ReactDOM.render(
         <NavBar/>
         <Switch>
         <Route exact path="/" render={(props) => <Student socket={socket} {...props}/>}/>
+        <Route path="/slides" render={(props) => <SlideView socket={socket} {...props}/>}/>
         <Route path="/podium" render={(props) => <Presenter socket={socket} {...props}/>}/>
         <Route path="/results" exact render={(props) => <ResultView socket={socket} {...props}/>}/>
         <Route path="/results/:pollid" render={(props) => <Results socket={socket} poll_id = {props.match.params.pollid} history={props.history} />}/>
