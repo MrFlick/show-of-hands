@@ -150,12 +150,14 @@ class SnippetForm extends React.Component {
                     onChange={this.handleInputChange}
                     style={{width: "100%"}} placeholder="(tag)" />
             </div>
-            <div className="card-block">
-                <textarea name="code" value={this.state.code} 
+            <div className="card-body">
+                <div className="card-text">
+                    <textarea name="code" value={this.state.code} 
                     onChange={this.handleInputChange}
-                    style={{width: "100%", height: "200px"}} />
+                    style={{width: "100%", height: "200px"}} /></div>
+                <div className="card-text">{actions}</div> 
             </div>
-            <div className="card-block">{actions}</div> 
+            
         </form></div>
     }
 }
@@ -194,21 +196,23 @@ class Snippet extends React.Component {
         let button = null;
         let snip = this.props.snippet
         if (snip.status == 0) {
-            button = <button onClick={this.openSnippet}>Open</button>
+            button = <button onClick={this.openSnippet}  className="btn">Open</button>
         } else if(snip.status ==1) {
-            button = <button onClick={this.closeSnippet}>Close</button>
+            button = <button onClick={this.closeSnippet}  className="btn">Close</button>
         } else if (snip.status == 2) {
-            button = <button onClick={this.openSnippet}>Re-open</button>
+            button = <button onClick={this.openSnippet}  className="btn">Re-open</button>
         }
         return <div className="card"><form onSubmit={this.handleSubmit}>
             <div className={classNames("card-header", {"open-poll": snip.status==1})}>
                 <div>{snip.title}</div>
                 {snip.tag && <div>(#{snip.tag})</div>}
             </div>
-            <div className="card-block"><pre>{snip.code}</pre></div>
-            <div className="card-block">{button}&nbsp; 
-                <button onClick={this.editSnippet}>Edit</button>&nbsp;
-                <button onClick={this.removeSnippet}>Delete</button>&nbsp;
+            <div className="card-body">
+                <div className="card-text"><pre>{snip.code}</pre></div>
+                <div className="card-text">{button}&nbsp; 
+                    <button onClick={this.editSnippet} className="btn">Edit</button>&nbsp;
+                    <button onClick={this.removeSnippet} className="btn">Delete</button>&nbsp;
+                </div>
             </div>
             </form></div>; 
     }    
@@ -315,7 +319,8 @@ class PollForm extends React.Component {
                     onChange={this.handleInputChange}
                     style={{width: "100%"}} />
             </div>
-            <div className="card-block">
+            <div className="card-body">
+                <div className="card-text">
                 <label><input type="radio" name="type" value="text" onChange={this.handleInputChange} 
                     checked={this.state.type=="text"}/> text </label> 
                 <label><input type="radio" name="type" value="number" onChange={this.handleInputChange} 
@@ -327,8 +332,9 @@ class PollForm extends React.Component {
                 <textarea name="options" value={this.state.options} 
                     onChange={this.handleInputChange}
                     style={{width: "100%", height: "100px"}}/>
+                </div>
+                <div className="card-text">{actions}</div> 
             </div>
-            <div className="card-block">{actions}</div> 
         </form></div>
     }
 }
@@ -376,24 +382,24 @@ class Poll extends React.Component {
         let poll = this.props.poll;
         let openButton = null;
         if (poll.status == 0) {
-            openButton = <button onClick={this.openPoll}>Open</button>
+            openButton = <button onClick={this.openPoll} className="btn">Open</button>
         } else if(poll.status ==1) {
-            openButton = <button onClick={this.closePoll}>Close</button>
+            openButton = <button onClick={this.closePoll} className="btn">Close</button>
         } else if (poll.status == 2) {
-            openButton = <button onClick={this.openPoll}>Re-open</button>
+            openButton = <button onClick={this.openPoll} className="btn">Re-open</button>
         }
         let shareButton = null;
         if (poll.shared == 0) {
-            shareButton = <button onClick={this.sharePoll}>Share</button>
+            shareButton = <button onClick={this.sharePoll} className="btn">Share</button>
         } else {
-            shareButton = <button onClick={this.unsharePoll}>Unshare</button>
+            shareButton = <button onClick={this.unsharePoll} className="btn">Unshare</button>
         }
         return <div className="card"><form onSubmit={this.handleSubmit}>
             <div className={classNames("card-header", {"open-poll": poll.status==1})}>{poll.title} ({poll.response_count})</div>
-            <div className="card-block"><p>{openButton}&nbsp; 
+            <div className="card-body"><p>{openButton}&nbsp; 
                 {shareButton}&nbsp;
-                <button onClick={this.editPoll}>Edit</button>&nbsp;
-                <button onClick={this.removePoll}>Delete</button>&nbsp;
+                <button onClick={this.editPoll} className="btn">Edit</button>&nbsp;
+                <button onClick={this.removePoll} className="btn">Delete</button>&nbsp;
                 <Link to={`/results/${poll.poll_id}`}>results</Link></p></div>
             </form></div>; 
     }    

@@ -99,11 +99,11 @@ export default class Student extends React.Component {
     }
     render() {
         return <div className="row">
-            <div className="col-6">
+            <div className="col-md-6">
                 <h2>Questions</h2>
                 <PollList polls={this.state.polls} socket={this.socket} 
                     imglink={this.props.history.createHref({pathname:"/img"})}/>
-            </div><div className="col-6">
+            </div><div className="col-md-6">
                 <h2>Snippets</h2>
                 <SnippetList snippets={this.state.snippets}/>
             </div>
@@ -135,7 +135,7 @@ function Icon(props) {
 function copyToClipboard(text) {
     if (window.clipboardData && window.clipboardData.setData) {
         // IE specific code path to prevent textarea being shown while dialog is visible.
-        return clipboardData.setData("Text", text); 
+        return window.clipboardData.setData("Text", text); 
 
     } else if (document.queryCommandSupported && document.queryCommandSupported("copy")) {
         var textarea = document.createElement("textarea");
@@ -160,7 +160,7 @@ function Snippet(props) {
         <div className="card-header">
         <div className="float-left">{snippet.title}</div>
         <div className="float-right"><button onClick={()=>copyToClipboard(snippet.code)}><Icon icon="copy"/></button></div></div>
-        <div className="card-block"><pre>{snippet.code}</pre></div>
+        <div className="card-body"><pre>{snippet.code}</pre></div>
     </div>; 
 }
 
@@ -224,12 +224,12 @@ class Poll extends React.Component {
         function bclass(x) {
             if (state.answered) {
                 if (state.value==x) {
-                    return "btn btn-primary"
+                    return "btn btn-primary m-1"
                 } else {
-                    return "btn btn-secondary"
+                    return "btn btn-secondary m-1"
                 }
             } else {
-                return "btn btn-outline-primary"
+                return "btn btn-outline-primary m-1"
             }
         }
         let poll = this.props.poll;
@@ -250,7 +250,7 @@ class Poll extends React.Component {
         }
         return <div className="card"><form onSubmit={this.handleSubmit}>
             <div className="card-header">{poll.title}</div>
-            <div className="card-block">{input}</div>
+            <div className="card-body">{input}</div>
             </form></div>; 
     }    
     
