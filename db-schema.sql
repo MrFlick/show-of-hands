@@ -30,3 +30,11 @@ CREATE TABLE images (
 	height INTEGER,
 	blob BLOB
 );
+
+CREATE TABLE slides (
+	slide_id INTEGER PRIMARY KEY,
+	image_name TEXT,
+	thumbnail_name TEXT,
+	status INTEGER NOT NULL DEFAULT 0,
+	seq INTEGER NOT NULL DEFAULT 0
+);

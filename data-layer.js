@@ -262,6 +262,28 @@ var DataStore = function(dbpath) {
         let sql = "SELECT * FROM images WHERE img_id=?"
         return getOne(db, sql, img)
     }
+	const linkSlide = (slide) => {
+		slide.url = "/s/" + slide.image_name;
+		if(slide.thumbnail_name) {
+			slide.thumb_url = "/s/" + slide.thumbnail_name;
+		}
+		return(slide)
+	}
+    this.getSlides = function() {
+        let sql = "SELECT * FROM slides ORDER BY seq"
+        return getAll(db, sql).then((results) => {
+			return results.map(linkSlide)
+		})
+    }
+	this.getSlide = function(slide_id) {
+		return getOne(db, "SELECT * FROM slides where slide_id=?", slide_id).then(linkSlide);
+	}
+	this.addSlide = function(slide) {
+        return insert(db, "INSERT INTO SLIDES (image_name, thumbnail_name, seq) " +
+            "values (?, ?, ?) ", slide.image_name, slide.thumbnail_name, slide.seq).then((result) => {
+                return this.getSlide(result.newID)
+            })
+	}
 
 	this.close = function() {
 		db.close();
