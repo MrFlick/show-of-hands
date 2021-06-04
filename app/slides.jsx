@@ -88,9 +88,10 @@ export default class SlideView extends React.Component {
                         <Slide slide={viewSlide} socket={this.socket} />
                         <button onClick={this.handleNextSlideClick}><i className="fa fa-chevron-right"></i></button>
                     </div>
+                    <div style={{textAlign: "center"}}>Viewing slide {this.state.viewSlideIndex+1} of {this.state.slides.length}</div>
                 </div>}
                 <div style={{gridColumn: "1/3"}}>
-                    <SlideList slides={this.state.slides} socket={this.socket} onClick={this.handleSlideClick}/>
+                    <SlideList slides={this.state.slides} viewSlideIndex={this.state.viewSlideIndex} onClick={this.handleSlideClick}/>
                 </div>
                 </div>
             </div>
@@ -98,26 +99,52 @@ export default class SlideView extends React.Component {
     }
 }
 
-function SlideList(props) {
-    let socket = props.socket;
-    let slides = props.slides;
-    if (slides.length > 0) {
-        return <div className="slide-list">{slides.map((slide) => {
-            return <Slide key={slide.slide_id} slide={slide} socket={socket} onClick={props.onClick} thumb={true}/>
-        })}</div>
-    } else {
-        return <p>No slides found</p>
+class SlideList extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {isOpen: false};
+      }
+    render() {
+        let slides = this.props.slides;
+        let viewSlideIndex = this.props.viewSlideIndex;
+        let hasSlides = slides.length > 0;
+        if (hasSlides) {
+            if (this.state.isOpen) {
+                return <div>
+                    <p><a href="#" onClick={(e) => {e.preventDefault(); this.setState({isOpen: false})}}>Hide All Slides</a></p>
+                    <div className="slide-list">
+                    {slides.map((slide, index) => {
+                    return <SlideThumb key={slide.slide_id} slide={slide} onClick={this.props.onClick} isActive={index==viewSlideIndex}/>
+                })}</div></div>
+            } else {
+                return <p><a href="#" onClick={(e) => {e.preventDefault(); this.setState({isOpen: true})}}>Show All Slides</a></p>
+
+            }
+        } else {
+            return <p>No slides found</p>
+        }
     }
 }
 
 function Slide(props) {
     if (props.slide) {
         let url = props.slide.url;
-        if (props.thumb && props.slide.thumb_url) {
-            url = props.slide.thumb_url;
-        }
-        return <img src={url} onClick={() => {if(props.onClick) props.onClick(props.slide.slide_id)}} />
+        return <img src={url} />
     } else {
         return null
     }
+}
+
+function SlideThumb(props) {
+    if (props.slide) {
+        let url = props.slide.thumb_url || props.slide.image_url;
+        if (url) {
+            return <a href="#" onClick={(event) => {event.preventDefault(); props.onClick(props.slide.slide_id)}}>
+                <img src={url} className={`slide-thumb ${props.isActive ? "slide-thumb-active": ""}`} width="213" height="120"/>
+            </a>
+        } else {
+            return null
+        }
+    }
+    return null
 }
