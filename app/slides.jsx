@@ -77,6 +77,7 @@ export default class SlideView extends React.Component {
     }
     render() {
         let viewSlide = this.getViewSlide()
+        let presenterIndex = this.findSlideIndex(this.state.presenterSlideId)
         return <div className="row">
             <div className="col-12">
                 <div style={{display: "grid", gridTemplateColumns: "1fr 1fr"}}>
@@ -88,7 +89,8 @@ export default class SlideView extends React.Component {
                         <Slide slide={viewSlide} socket={this.socket} />
                         <button onClick={this.handleNextSlideClick}><i className="fa fa-chevron-right"></i></button>
                     </div>
-                    <div style={{textAlign: "center"}}>Viewing slide {this.state.viewSlideIndex+1} of {this.state.slides.length}</div>
+                    <div style={{textAlign: "center"}}>Viewing slide {this.state.viewSlideIndex+1} of {this.state.slides.length}
+                    {presenterIndex!=this.state.viewSlideIndex ? ` (Presenter is on slide ${presenterIndex+1})`:""}</div>
                 </div>}
                 <div style={{gridColumn: "1/3"}}>
                     <SlideList slides={this.state.slides} viewSlideIndex={this.state.viewSlideIndex} onClick={this.handleSlideClick}/>
