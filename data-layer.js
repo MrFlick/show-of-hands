@@ -139,8 +139,8 @@ var DataStore = function(dbpath) {
 	};
 
     this.addPoll = function(poll) {
-        return insert(db, "INSERT INTO polls (title, type, options) " +
-            "values (?, ?, ?)", poll.title, poll.type, poll.options).then((result) => {
+        return insert(db, "INSERT INTO polls (title, type, options, tag) " +
+            "values (?, ?, ?, ?)", poll.title, poll.type, poll.options, poll.tag).then((result) => {
                 return this.getPoll(result.newID)
             })
     };
@@ -171,8 +171,8 @@ var DataStore = function(dbpath) {
         });
     };
 	this.updatePoll = function(poll) {
-        return update(db, "UPDATE polls SET title=?, type=?, options=? WHERE poll_id=?", 
-            poll.title, poll.type, poll.options, poll.poll_id).then(() => {
+        return update(db, "UPDATE polls SET title=?, type=?, options=?, tag=? WHERE poll_id=?", 
+            poll.title, poll.type, poll.options, poll.tag, poll.poll_id).then(() => {
                 return this.getPoll(poll.poll_id)
         });
     };

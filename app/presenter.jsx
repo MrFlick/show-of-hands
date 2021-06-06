@@ -264,10 +264,12 @@ class PollForm extends React.Component {
     constructor(props) {
         super(props);
         this.connector = props.connector;
-        this.orig_state = props.poll || {title: "untitled", 
+        this.orig_state = nullToUndef(props.poll || {
+            title: "", 
             type: "text", 
+            tag: "",
             options: ""
-        }
+        })
         if (typeof this.orig_state.options === "object") {
             this.orig_state.options = JSON.stringify(this.orig_state.options)
         }
@@ -301,7 +303,7 @@ class PollForm extends React.Component {
     }
     handleAdd() {
         this.connector.requestAdd(this.state)
-        this.setState({title: "untitled", type: "text", options:""});
+        this.setState({title: "", type: "text", options:"", tag: ""});
         this.handleStatusChange()
     }
     handleSubmit(e) {
@@ -323,7 +325,10 @@ class PollForm extends React.Component {
             <div className="card-header">
                 <input name="title" value={this.state.title} 
                     onChange={this.handleInputChange}
-                    style={{width: "100%"}} />
+                    style={{width: "100%"}} placeholder="(title)"/>
+                <input name="tag" value={this.state.tag} 
+                    onChange={this.handleInputChange}
+                    style={{width: "100%"}} placeholder="(tag)"/>
             </div>
             <div className="card-body">
                 <div className="card-text">
@@ -401,7 +406,9 @@ class Poll extends React.Component {
             shareButton = <button onClick={this.unsharePoll} className="btn">Unshare</button>
         }
         return <div className="card"><form onSubmit={this.handleSubmit}>
-            <div className={classNames("card-header", {"open-poll": poll.status==1})}>{poll.title} ({poll.response_count})</div>
+            <div className={classNames("card-header", {"open-poll": poll.status==1})}>
+                <div>{poll.title} ({poll.response_count})</div>
+                {poll.tag && <div>(#{poll.tag})</div>}</div>
             <div className="card-body"><p>{openButton}&nbsp; 
                 {shareButton}&nbsp;
                 <button onClick={this.editPoll} className="btn">Edit</button>&nbsp;
