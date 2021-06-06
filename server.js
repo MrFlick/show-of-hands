@@ -238,6 +238,10 @@ io.on('connection', function(socket) {
     socket.on("request presenter slide", function() {
         socket.emit("presenter slide", {slide_id: presenterSlideId})
     });
+    socket.on("set presenter slide", function(msg) {
+        presenterSlideId = msg.slide_id
+        io.emit("presenter slide", {slide_id: presenterSlideId})
+    });
 });
 
 http.listen(http_port, function() {

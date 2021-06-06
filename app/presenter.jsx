@@ -29,14 +29,20 @@ export default class Presenter extends React.Component {
         this.snip_wrapper.listenStop()
     }
     render() {
-        return <div className="row">
-            <div className="col-6">
-                <h2>Polls</h2>
-                <PollList polls={this.state.polls} connector={this.poll_wrapper}/>
-            </div><div className="col-6">
-                <h2>Snippets</h2>
-                <SnippetList snippets={this.state.snippets} connector={this.snip_wrapper}/>
+        return <div>
+            <div className="row">
+                <div className="col-2 my-auto"><h2>Slides</h2></div>
+                <div className="col-10 my-auto"><SlideControl socket={this.socket}/></div>
             </div>
+            <div className="row">
+                <div className="col-6">
+                    <h2>Polls</h2>
+                    <PollList polls={this.state.polls} connector={this.poll_wrapper}/>
+                </div><div className="col-6">
+                    <h2>Snippets</h2>
+                    <SnippetList snippets={this.state.snippets} connector={this.snip_wrapper}/>
+                </div>
+        </div>
         </div>
     }
 }
@@ -402,6 +408,56 @@ class Poll extends React.Component {
                 <button onClick={this.removePoll} className="btn">Delete</button>&nbsp;
                 <Link to={`/results/${poll.poll_id}`}>results</Link></p></div>
             </form></div>; 
-    }    
-    
+    }       
+}
+
+class SlideControl extends React.Component {
+    constructor(props) {
+        super(props)
+        this.state = {slides:[], presenterSlideId:0};
+        this.socket = props.socket;
+        this.socket_events = {    
+            "presenter slide": (slide) => this.setPresenterSlide(slide),
+            "slides": (slides) => this.setSlides(slides),
+        }
+        this.handleNextSlideClick = this.handleNextSlideClick.bind(this)
+        this.handlePrevSlideClick = this.handlePrevSlideClick.bind(this)
+    }
+    setSlides(slides) {
+        this.setState({slides: slides})
+    }
+    setPresenterSlide(slide) {
+        this.setState({presenterSlideId: slide.slide_id})
+    }
+    handleNextSlideClick() {
+        let newId = this.state.presenterSlideId + 1
+        if (newId < this.state.slides.length) {
+            this.socket.emit("set presenter slide", {slide_id: newId})
+        }
+    }
+    handlePrevSlideClick() {
+        let newId = this.state.presenterSlideId-1
+        if (newId >= 0) {
+            this.socket.emit("set presenter slide", {slide_id: newId})
+        }
+    }
+    componentDidMount() {
+        Object.keys(this.socket_events).map((k)=> {
+            this.socket.on(k, this.socket_events[k])
+        })
+        this.socket.emit("request slides", {});
+        this.socket.emit("request presenter slide", {});
+    }
+    componentWillUnmount() {
+        Object.keys(this.socket_events).map((k)=> {
+            this.socket.off(k, this.socket_events[k])
+        })
+    }
+    render() {
+        return <div className="container-sm"><div style={{display: "flex", alignItems: "center"}}>
+            <div><button onClick={this.handlePrevSlideClick} className="btn m-1">Prev</button></div>
+            <div>Current Slide: {this.state.presenterSlideId}</div>
+            <div><button onClick={this.handleNextSlideClick} className="btn m-1">Next</button></div>
+        </div></div>
+    }
 }
