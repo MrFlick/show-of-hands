@@ -22,7 +22,8 @@ CREATE TABLE snippets (
 	code TEXT,
 	status INTEGER NOT NULL DEFAULT 0,
 	open_seq INTEGER NOT NULL DEFAULT 0,
-	tag TEXT
+	tag TEXT,
+	type TEXT NOT NULL DEFAULT "code"
 );
 
 CREATE TABLE images (

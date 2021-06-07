@@ -96,7 +96,7 @@ class SnippetForm extends React.Component {
     constructor(props) {
         super(props);
         this.connector = props.connector;
-        this.orig_state = nullToUndef(props.snippet || {title: "", code: "", tag: ""})
+        this.orig_state = nullToUndef(props.snippet || {title: "", code: "", tag: "", type: "code"})
         this.state = Object.assign(this.orig_state, {action: props.action || "new"})
         this.handleInputChange = this.handleInputChange.bind(this)
         this.handleStatusChange = this.handleStatusChange.bind(this)
@@ -128,7 +128,7 @@ class SnippetForm extends React.Component {
     }
     handleAdd() {
         this.connector.requestAdd(this.state)
-        this.setState({title: "", code: "", tag: ""})
+        this.setState({title: "", code: "", tag: "", type: "code"})
         this.handleStatusChange()
     }
 
@@ -147,7 +147,7 @@ class SnippetForm extends React.Component {
                 <button type="button" style={{width: "50%"}} className="btn" 
                 onClick={this.handleCancel} key="cancel">Cancel</button>]
         }
-        return <div className="card"><form onSubmit={this.handleSubmit}>
+        return <div className="card snippet-form"><form onSubmit={this.handleSubmit}>
             <div className="card-header">
                 <input name="title" value={this.state.title} 
                     onChange={this.handleInputChange}
@@ -160,7 +160,14 @@ class SnippetForm extends React.Component {
                 <div className="card-text">
                     <textarea name="code" value={this.state.code} 
                     onChange={this.handleInputChange}
-                    style={{width: "100%", height: "200px"}} /></div>
+                    style={{width: "100%", height: "200px"}} />
+                </div>
+                <div className="card-text">
+                    <label><input type="radio" name="type" value="code" onChange={this.handleInputChange} 
+                        checked={this.state.type=="code"}/> code </label> 
+                    <label><input type="radio" name="type" value="link" onChange={this.handleInputChange} 
+                        checked={this.state.type=="link"}/> link </label>
+                </div>
                 <div className="card-text">{actions}</div> 
             </div>
             

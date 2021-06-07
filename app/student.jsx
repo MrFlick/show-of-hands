@@ -154,14 +154,27 @@ function copyToClipboard(text) {
     }
 }
 
+function openLink(url) {
+    window.open(url);
+}
+
 function Snippet(props) {
     let snippet = props.snippet;
-    return <div className="card">
-        <div className="card-header">
-        <div className="float-left">{snippet.title}</div>
-        <div className="float-right"><button onClick={()=>copyToClipboard(snippet.code)}><Icon icon="copy"/></button></div></div>
-        <div className="card-body"><pre>{snippet.code}</pre></div>
-    </div>; 
+    if(snippet.type=="link") {
+        return <div className="card">
+            <div className="card-header">
+            <div className="float-left">{snippet.title}</div>
+            <div className="float-right"><button onClick={()=>openLink(snippet.code)}><Icon icon="link"/></button></div></div>
+            <div className="card-body"><a href={snippet.code} rel="noreferrer" target="_blank">{snippet.code}</a></div>
+        </div>; 
+    } else {
+        return <div className="card">
+            <div className="card-header">
+            <div className="float-left">{snippet.title}</div>
+            <div className="float-right"><button onClick={()=>copyToClipboard(snippet.code)}><Icon icon="copy"/></button></div></div>
+            <div className="card-body"><pre>{snippet.code}</pre></div>
+        </div>; 
+    }
 }
 
 function PollList(props) {

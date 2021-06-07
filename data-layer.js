@@ -204,8 +204,8 @@ var DataStore = function(dbpath) {
 	}
 
     this.addSnippet = function(snip) {
-        return insert(db, "INSERT INTO snippets (title, code, tag) " +
-            "values (?, ?, ?) ", snip.title, snip.code, snip.tag).then((result) => {
+        return insert(db, "INSERT INTO snippets (title, code, tag, type) " +
+            "values (?, ?, ?, ?) ", snip.title, snip.code, snip.tag, snip.type).then((result) => {
                 return this.getSnippet(result.newID)
             })
     };
@@ -250,8 +250,8 @@ var DataStore = function(dbpath) {
     };
 
 	this.updateSnippet = function(snip) {
-        return update(db, "UPDATE snippets SET title=?, code=?, tag=? WHERE snippet_id=?", 
-            snip.title, snip.code, snip.tag, snip.snippet_id).then(() => {
+        return update(db, "UPDATE snippets SET title=?, code=?, tag=?, type=? WHERE snippet_id=?", 
+            snip.title, snip.code, snip.tag, snip.type, snip.snippet_id).then(() => {
                 return this.getSnippet(snip.snippet_id)
         });
     };
