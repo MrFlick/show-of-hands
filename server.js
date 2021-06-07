@@ -161,6 +161,14 @@ io.on('connection', function(socket) {
             io.emit("new snippet", snip)
         })
     });
+    socket.on("add open snippet", function(msg) {
+        data.addSnippet(msg).then((snip) => {
+            io.emit("new snippet", snip)
+            data.openSnippet(snip).then((snip) => {
+                io.emit("open snippet", snip)
+            })
+        })
+    });
     socket.on("open snippet", function(msg) {
         data.openSnippet(msg).then((snip) => {
             io.emit("open snippet", snip)

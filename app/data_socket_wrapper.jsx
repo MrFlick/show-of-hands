@@ -150,4 +150,7 @@ export class AdminSnippetSocketData extends SocketDataWrapper {
     requestCloseSnippet(item) {
         this.request("close", item)
     }
+    requestAddOpenSnippet(item) {
+        this.socket.emit("add open snippet", item)
+    }
 }

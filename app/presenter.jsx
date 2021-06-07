@@ -104,6 +104,7 @@ class SnippetForm extends React.Component {
         this.handleCancel = this.handleCancel.bind(this)
         this.handleUpdate = this.handleUpdate.bind(this)
         this.handleAdd = this.handleAdd.bind(this)
+        this.autoOpenCheck = React.createRef();
     }
     handleStatusChange() {
         if (this.props.onStatusChange) {
@@ -127,7 +128,11 @@ class SnippetForm extends React.Component {
         this.handleStatusChange()
     }
     handleAdd() {
-        this.connector.requestAdd(this.state)
+        if (this.autoOpenCheck.current.checked) {
+            this.connector.requestAddOpenSnippet(this.state)
+        } else {
+            this.connector.requestAdd(this.state)
+        }
         this.setState({title: "", code: "", tag: "", type: "code"})
         this.handleStatusChange()
     }
@@ -168,6 +173,9 @@ class SnippetForm extends React.Component {
                     <label><input type="radio" name="type" value="link" onChange={this.handleInputChange} 
                         checked={this.state.type=="link"}/> link </label>
                 </div>
+                {this.state.action == "new" && <div className="card-text">
+                    <label><input type="checkbox" name="auto-open" ref={this.autoOpenCheck}/> Auto open </label>
+                </div>}
                 <div className="card-text">{actions}</div> 
             </div>
             
