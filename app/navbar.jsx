@@ -12,7 +12,7 @@ export default class NavBar extends React.Component {
           <a className="navbar-brand" href="#">BDSI Classroom</a>
           <div>
             <ul className="navbar-nav mr-auto">
-              <NavLink to="/" label="Home"/>
+              <NavLink to="/" label="Polls/Snippets"/>
               <NavLink to="/slides" label="Slides"/>
             </ul>
           </div>
