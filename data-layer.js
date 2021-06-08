@@ -290,8 +290,8 @@ var DataStore = function(dbpath) {
 		return getOne(db, "SELECT * FROM slides where slide_id=?", slide_id).then(linkSlide);
 	}
 	this.addSlide = function(slide) {
-        return insert(db, "INSERT INTO SLIDES (image_name, thumbnail_name, seq) " +
-            "values (?, ?, ?) ", slide.image_name, slide.thumbnail_name, slide.seq).then((result) => {
+        return insert(db, "INSERT INTO SLIDES (image_name, thumbnail_name, seq, tag) " +
+            "values (?, ?, ?, ?) ", slide.image_name, slide.thumbnail_name, slide.seq, slide.tag).then((result) => {
                 return this.getSlide(result.newID)
             })
 	}

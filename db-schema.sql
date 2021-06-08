@@ -39,5 +39,6 @@ CREATE TABLE slides (
 	image_name TEXT,
 	thumbnail_name TEXT,
 	status INTEGER NOT NULL DEFAULT 0,
-	seq INTEGER NOT NULL DEFAULT 0
+	seq INTEGER NOT NULL DEFAULT 0,
+	tag TEXT
 );

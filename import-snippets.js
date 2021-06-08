@@ -16,8 +16,8 @@ if ( process.argv.length !==3 ) {
 
 const filename = process.argv[2]
 
-async function addItem(title, body, tag) {
-    return data.addSnippet({title: title, code: body, tag: tag})
+async function addItem(title, body, tag, type) {
+    return data.addSnippet({title: title, code: body, tag: tag, type: type})
 }
 
 function importFile(filename) {
@@ -26,7 +26,8 @@ function importFile(filename) {
     let body = []
     let title = ""
     let tag = ""
-    async function flush(title, body, tag) {
+    let type = "code"
+    async function flush(title, body, tag, type) {
         while (body.length && body[0]=="") {
             body.shift();
         }
@@ -34,7 +35,7 @@ function importFile(filename) {
             body.pop();
         }
         if (body.length) {
-            await addItem(title, body.join("\n"), tag);
+            await addItem(title, body.join("\n"), tag, type);
         } else {
             await null;
         }
@@ -43,18 +44,21 @@ function importFile(filename) {
     for(var i=0; i<lines.length; i++) {
         let line = lines[i]
         if (line.startsWith("#!")) {
-            await flush(title, body, tag);
+            await flush(title, body, tag, type);
             body = []
             title = ""
             tag = ""
+            type = "code"
             title = line.substring(2).trim()
         } else if (line.startsWith("##")) {
             tag = line.substring(2).trim()
+        } else if (line.startsWith("#@")) {
+            type = line.substring(2).trim()
         } else {
             body.push(line)
         }
     }
-    await flush(title, body, tag);
+    await flush(title, body, tag, type);
     })();
     })
 }
