@@ -4,7 +4,7 @@
   "description": "App to get interactive feedback during a lecture",
   "scripts": {
     "start": "node server",
-    "build": "webpack --mode development",
+    "build": "webpack --mode production",
     "dev": "concurrently \"webpack --mode development --watch\" \"nodemon server.js\"",
     "redb": "rm db/data.sqlite3 && sqlite3 db/data.sqlite3 < db-schema.sql && sqlite3 db/data.sqlite3 < db-sample.sql",
     "lint": "eslint"
