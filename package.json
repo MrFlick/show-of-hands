@@ -6,7 +6,7 @@
     "start": "node server",
     "build": "webpack --mode production",
     "dev": "concurrently \"webpack --mode development --watch\" \"nodemon server.js\"",
-    "redb": "rm db/data.sqlite3 && sqlite3 db/data.sqlite3 < db-schema.sql && sqlite3 db/data.sqlite3 < db-sample.sql",
+    "redb": "mkdir -p db && rm -f db/data.sqlite3 && sqlite3 db/data.sqlite3 < db-schema.sql",
     "lint": "eslint"
   },
   "dependencies": {
