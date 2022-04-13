@@ -9,6 +9,11 @@ After you clone the library you will need to
  1. Copy the config.default.js file to config.js
  2. Make sure path to DB exists. Run `sqlite3 db/data.sqlite3 ".read db-schema.sql"` to initialize DB schema
 
+ This application should run on the Google Compute Engine. To setup the
+ machine with all the necessary dependencies, use the commands in
+
+    scripts/setup.sh
+
  ## Running
 
   1. Use `npm run build` to compile the client side code
